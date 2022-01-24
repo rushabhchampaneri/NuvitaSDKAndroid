@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/iottive-projects/HealthMonitoringApp/app/src/main/res/drawable/app_background.xml" value="0.2703125" />
+        <entry key="..\:/iottive-projects/HealthMonitoringApp/app/src/main/res/drawable/rect_popup_bg.xml" value="0.2703125" />
+        <entry key="..\:/iottive-projects/HealthMonitoringApp/app/src/main/res/layout/activity_finding_device.xml" value="0.25416666666666665" />
+        <entry key="..\:/iottive-projects/HealthMonitoringApp/app/src/main/res/layout/activity_splash.xml" value="0.25416666666666665" />
+        <entry key="..\:/iottive-projects/HealthMonitoringApp/app/src/main/res/layout/dialog_devices.xml" value="0.25416666666666665" />
+        <entry key="..\:/iottive-projects/HealthMonitoringApp/app/src/main/res/layout/raw_devices.xml" value="0.2" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/drawable-xxxhdpi/rect_popup_full_bg.xml" value="0.2703125" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/drawable/ic_arrow_down.xml" value="0.2703125" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/drawable/rect_border.xml" value="0.2703125" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/drawable/rect_popup_bg.xml" value="0.2703125" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/layout/activity_finding_device.xml" value="0.25416666666666665" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/layout/activity_main.xml" value="0.128" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/layout/dialog_connect_device.xml" value="0.25416666666666665" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/layout/dialog_devices.xml" value="0.25416666666666665" />
+        <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/layout/raw_devices.xml" value="0.25416666666666665" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

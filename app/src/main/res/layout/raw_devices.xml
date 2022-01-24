@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/ll_main"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Bluetooth music001"
+            android:fontFamily="@font/poppins_semi_bold"
+            android:textColor="@color/black"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_8sdp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_gravity="center_vertical">
+
+        <View
+            android:layout_width="@dimen/_2sdp"
+            android:layout_height="match_parent"
+            android:background="@drawable/red" />
+
+        <View
+            android:layout_width="@dimen/_2sdp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:background="@drawable/red" />
+
+        <View
+            android:layout_width="@dimen/_2sdp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:background="@drawable/gry" />
+
+        <View
+            android:layout_width="@dimen/_2sdp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:background="@drawable/gry" />
+
+        <View
+            android:layout_width="@dimen/_2sdp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:background="@drawable/gry" />
+
+        <View
+            android:layout_width="@dimen/_2sdp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:background="@drawable/gry" />
+    </LinearLayout>
+    </LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="3 Meter"
+        android:includeFontPadding="false"
+        android:fontFamily="@font/poppins_regular"
+        android:textColor="@color/text_clr_medium"
+        android:textSize="12sp"/>
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/pop_up_line"/>
+    </LinearLayout>
