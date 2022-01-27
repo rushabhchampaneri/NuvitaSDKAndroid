@@ -1,5 +1,20 @@
 <resources>
     <string name="app_name">HealthMonitoringApp</string>
     <string name="connected_succesfully">Connected Succesfully</string>
+
+
     <string name="ecg_bluetooth01_device_connected_succesfully">ECG Bluetooth01 device connected succesfully</string>
+    <string name="enable_location_permission">Enable Location Permission</string>
+    <string name="enable_location_setting">Enable Location</string>
+    <string name="enable_storage_permission">Enable Storage Permission</string>
+    <string name="ok">Ok</string>
+    <string name="enable_bluetooth">Enable bluetooth</string>
+    <string name="device_disconnected">Device disconnected</string>
+    <string name="scan_not_supported">Scpls_connect_devicean not supported</string>
+    <string name="scan_fail">Scan fail</string>
+    <string name="connecting">Connecting...</string>
+    <string name="location_service_provider_is_not_available">Location Service Provider is not available</string>
+    <string name="pls_check_your_internetconnection">Please check your internet connection</string>
+
+
 </resources>

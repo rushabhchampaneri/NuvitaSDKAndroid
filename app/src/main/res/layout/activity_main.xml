@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
+    android:background="@drawable/home_version_back"
     android:orientation="vertical"
     android:paddingTop="20dp"
     tools:context=".activity.MainActivity">
@@ -28,6 +28,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -37,8 +38,8 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
                             android:layout_gravity="center_vertical"
                             android:src="@drawable/green_led" />
 
@@ -52,7 +53,7 @@
                             android:includeFontPadding="false"
                             android:text="ECG Device"
                             android:textColor="@color/white"
-                            android:textSize="18sp" />
+                            android:textSize="16sp" />
 
                         <ImageView
                             android:layout_width="wrap_content"
@@ -66,115 +67,107 @@
 
                 </LinearLayout>
 
-                <TextView
+                <ImageView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/rect_border"
-                    android:fontFamily="@font/lato_regular"
-                    android:gravity="center"
-                    android:paddingHorizontal="@dimen/_8sdp"
-                    android:paddingVertical="@dimen/_8sdp"
-                    android:text="Reconnect"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
+                    android:layout_height="@dimen/_23sdp"
+                    android:background="@drawable/reconnect" />
 
-                <TextView
+                <ImageView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_10sdp"
-                    android:background="@drawable/rect_border"
-                    android:backgroundTint="@color/white"
-                    android:fontFamily="@font/lato_regular"
-                    android:gravity="center"
-                    android:paddingHorizontal="@dimen/_8sdp"
-                    android:paddingVertical="@dimen/_8sdp"
-                    android:text="Upload"
-                    android:textColor="@color/color_primary_dark"
-                    android:textSize="14sp" />
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:background="@drawable/upload" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
                 android:orientation="horizontal"
-                android:layout_marginTop="@dimen/_10sdp"
                 android:paddingHorizontal="20dp">
+
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:src="@drawable/green_led"
-                    android:visibility="invisible"/>
+                    android:visibility="invisible" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/lato_bold"
+                        android:text="Last Data Reading:"
+                        android:textColor="@color/text_light_blue"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/lato_bold"
+                        android:paddingStart="@dimen/_20sdp"
+                        android:text="Last Upload on Server:"
+                        android:textColor="@color/text_light_blue"
+                        android:textSize="11sp" />
+
+                </LinearLayout>
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginStart="10dp"
-                android:weightSum="2">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/lato_bold"
-                    android:text="Last Data Reading:"
-                    android:textColor="@color/text_light_blue"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/lato_bold"
-                    android:text="Last Upload on Server:"
-                    android:textColor="@color/text_light_blue"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-            </LinearLayout>
-               <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:paddingHorizontal="20dp">
+
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:src="@drawable/green_led"
-                    android:visibility="invisible"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginStart="10dp"
-                android:weightSum="2">
+                    android:visibility="invisible" />
 
-                <TextView
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/lato_bold"
-                    android:text="2022-01-22 | 12:00:12"
-                    android:textColor="@color/text_light_blue"
-                    android:textSize="12sp" />
+                    android:layout_marginStart="10dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/lato_bold"
-                    android:text="2022-01-22 | 12:00:12"
-                    android:textColor="@color/text_light_blue"
-                    android:textSize="12sp" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/lato_bold"
+                        android:text="2022-01-22 | 12:00:12"
+                        android:textColor="@color/text_light_blue"
+                        android:textSize="11sp" />
 
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/lato_bold"
+                        android:paddingStart="@dimen/_20sdp"
+                        android:text="2022-01-22 | 12:00:12"
+                        android:textColor="@color/text_light_blue"
+                        android:textSize="11sp" />
+
+                </LinearLayout>
             </LinearLayout>
-               </LinearLayout>
+
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -201,15 +194,14 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
+                android:layout_height="0.3dp"
                 android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
@@ -219,8 +211,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/step" />
 
@@ -248,7 +240,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
                     android:orientation="horizontal"
                     android:weightSum="3">
 
@@ -298,8 +290,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="5 km"
+                            android:text="5"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" km"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -333,27 +334,26 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/heart" />
 
@@ -368,7 +368,7 @@
                         android:includeFontPadding="false"
                         android:text="Heart Rate"
                         android:textColor="@color/white"
-                        android:textSize="16sp" />
+                        android:textSize="14sp" />
 
                     <ImageView
                         android:layout_width="wrap_content"
@@ -382,7 +382,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
                     android:orientation="horizontal"
                     android:weightSum="2">
 
@@ -406,8 +406,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="108 bpm"
+                            android:text="108"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" bpm"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -432,8 +441,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="100 bpm"
+                            android:text="100"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" bpm"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -465,8 +483,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="108 bpm"
+                            android:text="108"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" bpm"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -491,8 +518,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="100 bpm"
+                            android:text="100"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" bpm"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -500,15 +536,14 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
@@ -518,8 +553,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/spo2" />
 
@@ -532,7 +567,7 @@
                         android:fontFamily="@font/lato_bold"
                         android:gravity="center_vertical"
                         android:includeFontPadding="false"
-                        android:text="SPO2"
+                        android:text="SpO2"
                         android:textColor="@color/white"
                         android:textSize="16sp" />
 
@@ -548,7 +583,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
                     android:orientation="horizontal"
                     android:weightSum="2">
 
@@ -666,15 +701,14 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
@@ -684,8 +718,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/ecg" />
 
@@ -714,7 +748,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
                     android:orientation="horizontal"
                     android:weightSum="2">
 
@@ -738,8 +772,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="53 ms%"
+                            android:text="53"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" ms"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -764,8 +807,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="93 bpm"
+                            android:text="93"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" bpm"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -802,13 +854,13 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_15sdp"
+                    android:layout_marginTop="@dimen/_12sdp"
                     android:background="@drawable/rect_border"
                     android:backgroundTint="@color/white"
                     android:fontFamily="@font/lato_bold"
                     android:gravity="center"
                     android:includeFontPadding="true"
-                    android:paddingVertical="@dimen/_8sdp"
+                    android:paddingVertical="@dimen/_7sdp"
                     android:text="Start to Measure"
                     android:textColor="@color/text_blue"
                     android:textSize="14sp" />
@@ -816,27 +868,26 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/hrv" />
 
@@ -865,7 +916,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
                     android:orientation="horizontal"
                     android:weightSum="3">
 
@@ -889,9 +940,19 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="26 Low"
+                            android:text="26"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" Low"
+                            android:textColor="@color/text_light_blue"
+                            android:textSize="12sp" />
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -915,8 +976,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="25 Low"
+                            android:text="25"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" Low"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -941,8 +1011,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="25 Low"
+                            android:text="25"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" Low"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -950,15 +1029,14 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
@@ -968,8 +1046,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/temperature" />
 
@@ -998,7 +1076,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
                     android:orientation="horizontal"
                     android:weightSum="3">
 
@@ -1022,8 +1100,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="35.6 °C"
+                            android:text="35.6"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" °C"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -1048,8 +1135,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="35.6 °C"
+                            android:text="35.6"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" °C"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -1074,8 +1170,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="39.6 °C"
+                            android:text="39.6"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" °C"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -1083,15 +1188,14 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
@@ -1101,8 +1205,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/blood_pressor" />
 
@@ -1131,7 +1235,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
                     android:orientation="horizontal"
                     android:weightSum="2">
 
@@ -1155,8 +1259,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="124/65 mmHg"
+                            android:text="124/65"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" mmHg"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -1181,8 +1294,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="121/62 mmHg"
+                            android:text="121/62"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" mmHg"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -1214,8 +1336,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="126/28 mmHg"
+                            android:text="126/28"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" mmHg"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -1225,15 +1356,14 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
@@ -1243,8 +1373,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/stress" />
 
@@ -1273,7 +1403,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
                     android:orientation="horizontal"
                     android:weightSum="2">
 
@@ -1297,8 +1427,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="60 Stressed"
+                            android:text="60"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" Stressed"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -1323,8 +1462,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="62 Stressed"
+                            android:text="62"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" Stressed"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -1356,8 +1504,17 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="52 Stressed"
+                            android:text="52"
                             android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" Stressed"
+                            android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -1367,15 +1524,14 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp">
 
@@ -1385,8 +1541,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/sleep" />
 
@@ -1408,8 +1564,8 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:fontFamily="@font/lato_bold"
-                        android:text="6H44min"
                         android:gravity="center_vertical"
+                        android:text="6H44min"
                         android:textColor="@color/text_light_blue"
                         android:textSize="12sp" />
 
@@ -1420,11 +1576,10 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0.2dp"
-                android:layout_marginTop="@dimen/_15sdp"
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:layout_marginBottom="@dimen/_20sdp"
-                android:background="@drawable/pop_up_line"
-                android:backgroundTint="@color/text_light_blue"/>
+                android:background="@drawable/line_5" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>

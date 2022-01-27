@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="4" by="lint 3.2.1">
+
+    <issue
+        id="MissingPermission"
+        severity="Error"
+        message="Missing permissions required by BluetoothDevice.getName: android.permission.BLUETOOTH"
+        category="Correctness"
+        priority="9"
+        summary="Missing Permissions"
+        explanation="This check scans through your code and libraries and looks at the APIs being used, and checks this against the set of permissions required to access those APIs. If the code using those APIs is called at runtime, then the program will crash.&#xA;&#xA;Furthermore, for permissions that are revocable (with targetSdkVersion 23), client code must also be prepared to handle the calls throwing an exception if the user rejects the request for permission at runtime."
+        errorLine1="  this.name = device.getName();"
+        errorLine2="              ~~~~~~~~~~~~~~~~"
+        quickfix="studio">
+        <location
+            file="C:\Users\Administrator\Desktop\2025\2025test\blesdk_2025\src\main\java\com\jstyle\blesdk2025\model\ExtendedBluetoothDevice.java"
+            line="43"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        severity="Warning"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        category="Correctness"
+        priority="6"
+        summary="Implied default locale in case conversion"
+        explanation="Calling `String#toLowerCase()` or `#toUpperCase()` **without specifying an explicit locale** is a common source of bugs. The reason for that is that those methods will use the current locale on the user&apos;s device, and even though the code appears to work correctly when you are developing the app, it will fail in some locales. For example, in the Turkish locale, the uppercase replacement for `i` is **not** `I`.&#xA;&#xA;If you want the methods to just perform ASCII replacement, for example to convert an enum name, call `String#toUpperCase(Locale.US)` instead. If you really want to use the current locale, call `String#toUpperCase(Locale.getDefault())` instead."
+        url="http://developer.android.com/reference/java/util/Locale.html#default_locale"
+        urls="http://developer.android.com/reference/java/util/Locale.html#default_locale"
+        errorLine1="            hashMap.put(DeviceKey.Pace, String.format(&quot;%02d&quot;,speedMin)+&quot;&apos;&quot;+String.format(&quot;%02d&quot;,speedS)+&quot;\&quot;&quot;);"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="C:\Users\Administrator\Desktop\2025\2025test\blesdk_2025\src\main\java\com\jstyle\blesdk2025\Util\ResolveUtil.java"
+            line="1128"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        severity="Warning"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        category="Correctness"
+        priority="6"
+        summary="Implied default locale in case conversion"
+        explanation="Calling `String#toLowerCase()` or `#toUpperCase()` **without specifying an explicit locale** is a common source of bugs. The reason for that is that those methods will use the current locale on the user&apos;s device, and even though the code appears to work correctly when you are developing the app, it will fail in some locales. For example, in the Turkish locale, the uppercase replacement for `i` is **not** `I`.&#xA;&#xA;If you want the methods to just perform ASCII replacement, for example to convert an enum name, call `String#toUpperCase(Locale.US)` instead. If you really want to use the current locale, call `String#toUpperCase(Locale.getDefault())` instead."
+        url="http://developer.android.com/reference/java/util/Locale.html#default_locale"
+        urls="http://developer.android.com/reference/java/util/Locale.html#default_locale"
+        errorLine1="            hashMap.put(DeviceKey.Pace, String.format(&quot;%02d&quot;,speedMin)+&quot;&apos;&quot;+String.format(&quot;%02d&quot;,speedS)+&quot;\&quot;&quot;);"
+        errorLine2="                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="C:\Users\Administrator\Desktop\2025\2025test\blesdk_2025\src\main\java\com\jstyle\blesdk2025\Util\ResolveUtil.java"
+            line="1128"
+            column="76"/>
+    </issue>
+
+    <issue
+        id="UseValueOf"
+        severity="Warning"
+        message="Use `Byte.valueOf(a)` instead"
+        category="Performance"
+        priority="4"
+        summary="Should use `valueOf` instead of `new`"
+        explanation="You should not call the constructor for wrapper classes directly, such as`new Integer(42)`. Instead, call the `valueOf` factory method, such as `Integer.valueOf(42)`. This will typically use less memory because common integers such as 0 and 1 will share a single instance."
+        errorLine1="        s = Integer.toHexString(new Byte(a).intValue());"
+        errorLine2="                                ~~~~~~~~~~~"
+        quickfix="studio">
+        <location
+            file="C:\Users\Administrator\Desktop\2025\2025test\blesdk_2025\src\main\java\com\jstyle\blesdk2025\Util\ResolveUtil.java"
+            line="1317"
+            column="33"/>
+    </issue>
+
+</issues>
