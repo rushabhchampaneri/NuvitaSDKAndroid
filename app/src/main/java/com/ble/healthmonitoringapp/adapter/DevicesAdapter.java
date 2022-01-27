@@ -2,6 +2,7 @@ package com.ble.healthmonitoringapp.adapter;
 
 import static com.ble.healthmonitoringapp.dialog.devicesDialog.Devicesdialog;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.media.AudioManager;
 import android.view.LayoutInflater;
@@ -18,19 +19,64 @@ import com.ble.healthmonitoringapp.dialog.ConnectDeviceDialog;
 import com.ble.healthmonitoringapp.model.ConnectDeviceModel;
 import com.ble.healthmonitoringapp.utils.AppMethods;
 import com.bumptech.glide.Glide;
+import com.jstyle.blesdk2025.model.ExtendedBluetoothDevice;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHolder> {
 
     private Context context;
-    ArrayList<ConnectDeviceModel> deviceModelArrayList = new ArrayList<>();
+    ArrayList<ExtendedBluetoothDevice> deviceList = new ArrayList<>();
     private int total=0;
+    int filterRssi;
 
-
-    public DevicesAdapter(Context context, ArrayList<ConnectDeviceModel> deviceModelArrayList) {
+    public DevicesAdapter(Context context, ArrayList<ExtendedBluetoothDevice> deviceModelArrayList) {
         this.context = context;
-        this.deviceModelArrayList = deviceModelArrayList;
+        this.deviceList = deviceModelArrayList;
+    }
+    public void setDeviceList(ArrayList<ExtendedBluetoothDevice> deviceList) {
+        this.deviceList = deviceList;
+        notifyDataSetChanged();
+        //getFilter().filter(filterName);
+    }
+    public void addBondDevice(List<ExtendedBluetoothDevice> list) {
+
+        deviceList.addAll(list);
+        notifyDataSetChanged();
+
+    }
+
+    public void addDevice(BluetoothDevice device, String name, int rssi) {
+        ExtendedBluetoothDevice bluetoothDevice = findDevice(device);
+        if (bluetoothDevice == null) {
+            deviceList.add(new ExtendedBluetoothDevice(device, name, rssi));
+        } else {
+            bluetoothDevice.rssi = rssi;
+        }
+    }
+
+    private ExtendedBluetoothDevice findDevice(final BluetoothDevice device) {
+        for (final ExtendedBluetoothDevice mDevice : deviceList) {
+            if (mDevice.matches(device)) return mDevice;
+        }
+        return null;
+    }
+
+    public BluetoothDevice getDevice(int position) {
+        return deviceList.get(position).device;
+    }
+
+    public String getName(int position) {
+        return deviceList.get(position).name;
+    }
+
+    public void clear() {
+        deviceList.clear();
+    }
+
+    public void setFilterRssi(int rssi) {
+        this.filterRssi = rssi;
     }
 
     @NonNull
@@ -44,11 +90,11 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHo
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
 
-        int rssi = deviceModelArrayList.get(position).rssi;
-        int txPower = deviceModelArrayList.get(position).txPower;
+        int rssi = deviceList.get(position).rssi;
+        int txPower = deviceList.get(position).device.getBondState();
         double distance = AppMethods.getDistance(rssi, txPower);
         int RSSI = AppMethods.getStrength(rssi);
-        total=deviceModelArrayList.size();
+        total=deviceList.size();
         total = total -1;
         if(position==total){
             holder.view.setVisibility(View.GONE);
@@ -56,7 +102,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHo
         else {
             holder.view.setVisibility(View.VISIBLE);
         }
-        holder.tv_name.setText(deviceModelArrayList.get(position).deviceName);
+        holder.tv_name.setText(deviceList.get(position).device.getName());
         holder.tv_distance.setText("" + distance);
         if (RSSI < 40) {
             holder.view_one.setBackgroundResource(R.drawable.red);
@@ -91,11 +137,9 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHo
             holder.view_five.setBackgroundResource(R.drawable.green);
             holder.view_six.setBackgroundResource(R.drawable.green);
         }
-
         holder.ll_main.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 ConnectDeviceDialog connectDeviceDialog = new ConnectDeviceDialog();
                 connectDeviceDialog.showDialog(context);
             }
@@ -104,7 +148,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHo
 
     @Override
     public int getItemCount() {
-        return deviceModelArrayList.size();
+        return deviceList.size();
     }
 
 

@@ -1,24 +1,15 @@
 package com.ble.healthmonitoringapp.dialog;
 
-import static com.ble.healthmonitoringapp.dialog.devicesDialog.Devicesdialog;
-
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.LinearLayout;
-
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.activity.MainActivity;
-import com.ble.healthmonitoringapp.adapter.DevicesAdapter;
 
 public class ConnectDeviceDialog {
     Dialog dialog;
@@ -37,13 +28,11 @@ public class ConnectDeviceDialog {
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
-
         ll_main = dialog.findViewById(R.id.ll_main);
-
         ll_main.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Devicesdialog.dismiss();
+                devicesDialog.Devicesdialog.dismiss();
                 dialog.dismiss();
                 Intent intentMain = new Intent(mContext, MainActivity.class);
                 mContext.startActivity(intentMain);
