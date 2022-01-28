@@ -1,6 +1,7 @@
 package com.ble.healthmonitoringapp.utils;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -12,6 +13,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+
+import com.ble.healthmonitoringapp.R;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -27,6 +30,9 @@ public class Utilities {
     public static Context mContext;
     public static boolean FirstFound = false;
     private static final String PREFERENCE = "Bifi";
+    public static ProgressDialog progressDialog;
+    public static String MacAddress="";
+    public static String DeviceName="";
 
 
     public static void setValue(@NonNull Context context, String key, int value) {
@@ -134,9 +140,14 @@ public class Utilities {
 
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
         String formattedDate = df.format(c.getTime());
-
         return formattedDate;
-
+    }
+    public  static int getValueInt(String s){
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
     public static String Time(String time) {
         SimpleDateFormat parseFormat = new SimpleDateFormat("HH:mm");
@@ -185,5 +196,13 @@ public class Utilities {
         }
         return false;
     }
-
+    public static void showConnectDialog(Context context) {
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage(context.getString(R.string.connectting));
+        progressDialog.setCancelable(false);
+        if (!progressDialog.isShowing()) progressDialog.show();
+    }
+    public static void dissMissDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
+    }
 }

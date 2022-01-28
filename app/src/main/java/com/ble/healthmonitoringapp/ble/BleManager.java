@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.text.TextUtils;
+import android.util.Log;
 
 /**
  * Created by Administrator on 2017/4/11.
@@ -65,13 +66,11 @@ public class BleManager {
         return ourInstance;
     }
     public void connectDevice(String address){
-        if(!bluetoothAdapter.isEnabled()|| TextUtils.isEmpty(address)||isConnected())return;
-
-        if(bleService==null){
-            this.address=address;
-        }else{
-            bleService.initBluetoothDevice(address,this.context);
+        Log.e("connectDevice",address);
+        if(!bluetoothAdapter.isEnabled()|| TextUtils.isEmpty(address)||isConnected()){
+            return;
         }
+        bleService.initBluetoothDevice(address,this.context);
     }
 
 
@@ -96,8 +95,9 @@ public class BleManager {
         bleService.nextQueue();
     }
     public void disconnectDevice(){
-        if(bleService==null)return;
-        bleService.disconnect();
+        if(bleService!=null) {
+            bleService.disconnect();
+        }
     }
 
     public boolean isConnected(){

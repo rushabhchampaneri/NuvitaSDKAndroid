@@ -2,22 +2,29 @@ package com.ble.healthmonitoringapp.adapter;
 
 import static com.ble.healthmonitoringapp.dialog.devicesDialog.Devicesdialog;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.media.AudioManager;
+import android.os.Handler;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ble.healthmonitoringapp.R;
+import com.ble.healthmonitoringapp.ble.BleManager;
 import com.ble.healthmonitoringapp.dialog.ConnectDeviceDialog;
 import com.ble.healthmonitoringapp.model.ConnectDeviceModel;
 import com.ble.healthmonitoringapp.utils.AppMethods;
+import com.ble.healthmonitoringapp.utils.Utilities;
 import com.bumptech.glide.Glide;
 import com.jstyle.blesdk2025.model.ExtendedBluetoothDevice;
 
@@ -87,23 +94,23 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHo
         return new MyViewHolder(itemView);
     }
 
+    @SuppressLint("RecyclerView")
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
 
         int rssi = deviceList.get(position).rssi;
-        int txPower = deviceList.get(position).device.getBondState();
+        int txPower = -69;
         double distance = AppMethods.getDistance(rssi, txPower);
         int RSSI = AppMethods.getStrength(rssi);
         total=deviceList.size();
         total = total -1;
         if(position==total){
             holder.view.setVisibility(View.GONE);
-        }
-        else {
+        } else {
             holder.view.setVisibility(View.VISIBLE);
         }
-        holder.tv_name.setText(deviceList.get(position).device.getName());
-        holder.tv_distance.setText("" + distance);
+        holder.tv_name.setText(deviceList.get(position).name);
+        holder.tv_distance.setText(String.format("%.2f", distance)+" Meter");
         if (RSSI < 40) {
             holder.view_one.setBackgroundResource(R.drawable.red);
             holder.view_two.setBackgroundResource(R.drawable.red);
@@ -111,8 +118,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHo
             holder.view_four.setBackgroundResource(R.drawable.gry);
             holder.view_five.setBackgroundResource(R.drawable.gry);
             holder.view_six.setBackgroundResource(R.drawable.gry);
-        }
-        else if (RSSI < 60) {
+        } else if (RSSI < 60) {
             holder.view_one.setBackgroundResource(R.drawable.green);
             holder.view_two.setBackgroundResource(R.drawable.green);
             holder.view_three.setBackgroundResource(R.drawable.green);
@@ -120,16 +126,14 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHo
             holder.view_five.setBackgroundResource(R.drawable.gry);
             holder.view_six.setBackgroundResource(R.drawable.gry);
 
-        }
-        else if (RSSI < 80) {
+        } else if (RSSI < 80) {
             holder.view_one.setBackgroundResource(R.drawable.green);
             holder.view_two.setBackgroundResource(R.drawable.green);
             holder.view_three.setBackgroundResource(R.drawable.green);
             holder.view_four.setBackgroundResource(R.drawable.green);
             holder.view_five.setBackgroundResource(R.drawable.gry);
             holder.view_six.setBackgroundResource(R.drawable.gry);
-        }
-        else {
+        } else {
             holder.view_one.setBackgroundResource(R.drawable.green);
             holder.view_two.setBackgroundResource(R.drawable.green);
             holder.view_three.setBackgroundResource(R.drawable.green);
@@ -140,8 +144,20 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHo
         holder.ll_main.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ConnectDeviceDialog connectDeviceDialog = new ConnectDeviceDialog();
-                connectDeviceDialog.showDialog(context);
+                if (BleManager.getInstance().isConnected()) BleManager.getInstance().disconnectDevice();
+                BleManager.getInstance().connectDevice(deviceList.get(position).device.getAddress());
+                Utilities.DeviceName=deviceList.get(position).name;
+                Utilities.MacAddress=deviceList.get(position).device.getAddress();
+                Utilities.showConnectDialog(context);
+                new Handler().postDelayed(new Runnable() {
+                   @Override
+                   public void run() {
+                    if(!BleManager.getInstance().isConnected()){
+                        Utilities.dissMissDialog();
+                        Toast.makeText(context, "Please try again", Toast.LENGTH_SHORT).show();
+                    }
+                   }
+               },20000);
             }
         });
     }

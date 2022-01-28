@@ -45,6 +45,7 @@
                             android:src="@drawable/green_led" />
 
                         <TextView
+                            android:id="@+id/tvDeviceName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
@@ -52,11 +53,12 @@
                             android:fontFamily="@font/lato_bold"
                             android:gravity="start"
                             android:includeFontPadding="false"
-                            android:text="ECG Device"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="16sp" />
 
                         <ImageView
+                            android:id="@+id/ivBattery"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
@@ -69,6 +71,7 @@
                 </LinearLayout>
 
                 <ImageView
+                    android:id="@+id/ivConnect"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_23sdp"
                     android:background="@drawable/reconnect" />
@@ -146,23 +149,25 @@
                     android:weightSum="2">
 
                     <TextView
+                        android:id="@+id/tvLastReadingTime"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:layout_weight="1"
                         android:fontFamily="@font/lato_bold"
-                        android:text="2022-01-22 | 12:00:12"
+                        android:text="-"
                         android:textColor="@color/text_light_blue"
                         android:textSize="11sp" />
 
                     <TextView
+                        android:id="@+id/tvLastUploadTime"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:layout_weight="1"
                         android:fontFamily="@font/lato_bold"
                         android:paddingStart="@dimen/_20sdp"
-                        android:text="2022-01-22 | 12:00:12"
+                        android:text="-"
                         android:textColor="@color/text_light_blue"
                         android:textSize="11sp" />
 
@@ -181,13 +186,14 @@
                     android:src="@drawable/watch" />
 
                 <TextView
+                    android:id="@+id/tvCurrentTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:fontFamily="@font/lato_bold"
                     android:gravity="center"
                     android:includeFontPadding="false"
-                    android:text="4:50AM"
+                    android:text="-"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
@@ -261,11 +267,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvStep"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="2500"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -287,11 +294,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvDistanceKm"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="5"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -322,11 +330,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvKCal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="18.74"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -403,11 +412,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvHeartValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="108"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -438,11 +448,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvLowestValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="100"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -480,11 +491,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvAvgValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="108"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -515,11 +527,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvHighestValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="100"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -604,11 +617,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvBloodOxy"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="98%"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -630,11 +644,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMaxOxygen"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="98%"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -663,11 +678,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvAvgOxygen"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="98%"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -689,11 +705,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMinOxygen"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="45%"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -769,11 +786,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvHrvEcg"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="53"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -804,11 +822,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvAvgHrvEcg"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="93"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -853,6 +872,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/btnEcgMeasure"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/_12sdp"
@@ -937,11 +957,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvAvgHrv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="26"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -973,11 +994,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMinHrv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="25"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1008,11 +1030,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMaxHrv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="25"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1097,11 +1120,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvAvgTemp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="35.6"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1132,11 +1156,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMinTemp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="35.6"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1167,11 +1192,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMaxTemp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="39.6"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1256,11 +1282,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvAvgBloodPress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="124/65"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1291,11 +1318,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMaxBloodPress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="121/62"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1333,11 +1361,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMinBloodPress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="126/28"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1424,11 +1453,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvAvgStress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="60"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1459,11 +1489,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMaxStress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="62"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1501,11 +1532,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMinStress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="52"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -1561,12 +1593,13 @@
                         android:textSize="16sp" />
 
                     <TextView
+                        android:id="@+id/tvSleepQuality"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:fontFamily="@font/lato_bold"
                         android:gravity="center_vertical"
-                        android:text="6H44min"
+                        android:text="-"
                         android:textColor="@color/text_light_blue"
                         android:textSize="12sp" />
 

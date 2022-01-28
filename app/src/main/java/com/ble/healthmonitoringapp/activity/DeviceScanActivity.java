@@ -1,6 +1,5 @@
 package com.ble.healthmonitoringapp.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -11,39 +10,40 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-
 import android.widget.ImageView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.ble.healthmonitoringapp.R;
+import com.ble.healthmonitoringapp.ble.BleManager;
+import com.ble.healthmonitoringapp.ble.BleService;
+import com.ble.healthmonitoringapp.dialog.ConnectDeviceDialog;
 import com.ble.healthmonitoringapp.dialog.devicesDialog;
-import com.ble.healthmonitoringapp.utils.PermissionsUtil;
+import com.ble.healthmonitoringapp.utils.BleData;
+import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
 import com.ble.healthmonitoringapp.utils.ResolveData;
+import com.ble.healthmonitoringapp.utils.RxBus;
+import com.ble.healthmonitoringapp.utils.Utilities;
 import com.bumptech.glide.Glide;
 import com.jstyle.blesdk2025.model.ExtendedBluetoothDevice;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
-public class DeviceScanActivity extends AppCompatActivity implements PermissionsUtil.PermissionListener {
+public class DeviceScanActivity extends AppCompatActivity {
     private ImageView iv_src,iv_find_dvs;
     private BluetoothAdapter mBluetoothAdapter;
     private boolean mScanning;
     private Handler mHandler;
     private static final int REQUEST_ENABLE_BT = 1;
     devicesDialog devicesDialog;
+    private Disposable subscription;
+    private boolean isFirstLocationPermission = true;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_finding_device);
-        iv_src = findViewById(R.id.iv_src);
-        iv_find_dvs = findViewById(R.id.iv_find_dvs);
-        devicesDialog = new devicesDialog();
-        devicesDialog.showDialog(DeviceScanActivity.this);
-        Glide.with(this).load(R.raw.searching).into(iv_src).onStart();
-        Glide.with(this).load(R.raw.finding_device).into(iv_find_dvs).onStart();
         mHandler = new Handler();
         if (!getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -59,71 +59,66 @@ public class DeviceScanActivity extends AppCompatActivity implements Permissions
             finish();
             return;
         }
-        PermissionsUtil.requestPermissions(this, this, Manifest.permission.ACCESS_FINE_LOCATION);
-
+        InitUI();
     }
 
-   /* @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_scan:
-                PermissionsUtil.requestPermissions(this, this, Manifest.permission.ACCESS_FINE_LOCATION);
-                break;
-            case R.id.menu_stop:
-                scanLeDevice(false);
-                break;
-            case R.id.menu_filter:
-                //showFilterDialog();
-                break;
-        }
-        return true;
-    }*/
+    public void InitUI(){
+        iv_src = findViewById(R.id.iv_src);
+        iv_find_dvs = findViewById(R.id.iv_find_dvs);
+        devicesDialog = new devicesDialog();
+        devicesDialog.showDialog(DeviceScanActivity.this);
+        Glide.with(this).load(R.raw.searching).into(iv_src).onStart();
+        Glide.with(this).load(R.raw.finding_device).into(iv_find_dvs).onStart();
+        subscription = RxBus.getInstance().toObservable(BleData.class).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<BleData>() {
+            @Override
+            public void accept(BleData bleData) throws Exception {
+                String action = bleData.getAction();
+                if (action.equals(BleService.ACTION_GATT_onDescriptorWrite)) {
+                    scanLeDevice(false);
+                    Utilities.dissMissDialog();
+                    ConnectDeviceDialog connectDeviceDialog = new ConnectDeviceDialog();
+                    connectDeviceDialog.showDialog(DeviceScanActivity.this);
+                } else if (action.equals(BleService.ACTION_GATT_DISCONNECTED)) {
+                    Utilities.dissMissDialog();
+                }
+            }
+        });
+    }
+
 
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        // Ensures Bluetooth is enabled on the device. If Bluetooth is not
-        // currently enabled,
-        // fire an intent to display a dialog asking the user to grant
-        // permission to enable it.
-        if (!mBluetoothAdapter.isEnabled()) {
-            if (!mBluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(
-                        BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            }
-        }
-
-        // Initializes list view adapter.
-        /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
-                if (device == null)
-                    return;
-                String name = mLeDeviceListAdapter.getName(position);
-                if (mScanning) {
-                    scanLeDevice(false);
-                }
-                final Intent intent = new Intent(DeviceScanActivity.this, MainActivity.class);
-                intent.putExtra("address", device.getAddress());
-                intent.putExtra("name", name);
-                startActivity(intent);
-
-            }
-        });*/
-       /* Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
+        /* Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
         List<ExtendedBluetoothDevice> list = new ArrayList<>();
         for (BluetoothDevice device : devices) {
             list.add(new ExtendedBluetoothDevice(device));
         }
         devicesDialog.devicesAdapter.addBondDevice(list);*/
-        scanLeDevice(true);
+        if(checkselfPermission()) {
+            scanLeDevice(true);
+        }
+    }
+    private boolean checkselfPermission(){
+        if (CheckSelfPermission.isBluetoothOn(DeviceScanActivity.this)){
+            if (CheckSelfPermission.isLocationOn(DeviceScanActivity.this)){
+                if(checkLocationPermission()){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
+    private boolean checkLocationPermission(){
+        if (isFirstLocationPermission){
+            isFirstLocationPermission = false;
+            return CheckSelfPermission.checkLocationPermission(DeviceScanActivity.this);
+        }else {
+            return CheckSelfPermission.checkLocationPermissionRetional(DeviceScanActivity.this);
+        }
+    }
 
 
     @Override
@@ -188,28 +183,7 @@ public class DeviceScanActivity extends AppCompatActivity implements Permissions
         }
     }
 
-    @Override
-    public void granted(String name) {
-        if (Manifest.permission.ACCESS_FINE_LOCATION.equals(name)) {
-            if (devicesDialog.devicesAdapter != null) devicesDialog.devicesAdapter.clear();
-            if (extendedBluetoothDevices != null) extendedBluetoothDevices.clear();
-            scanLeDevice(true);
-        }
-    }
-
-    @Override
-    public void NeverAskAgain() {
-
-    }
-
-    @Override
-    public void disallow(String name) {
-
-    }
-
-
     // Device scan callback.
-
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
 
         @Override
@@ -235,5 +209,18 @@ public class DeviceScanActivity extends AppCompatActivity implements Permissions
             });
         }
     };
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unsubscribe();
+        if (BleManager.getInstance().isConnected()) BleManager.getInstance().disconnectDevice();
+    }
+
+    private void unsubscribe() {
+        if (subscription != null && !subscription.isDisposed()) {
+            subscription.dispose();
+           // Log.i(TAG, "unSubscribe: ");
+        }
+    }
 
 }
