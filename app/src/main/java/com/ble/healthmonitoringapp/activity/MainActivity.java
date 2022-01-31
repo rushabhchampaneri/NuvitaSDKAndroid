@@ -38,18 +38,15 @@ public class MainActivity extends BaseActivity {
     int ModeDelete = 0x99;
     private String date;
     List<Map<String, String>> list = new ArrayList<>();
-    private List<Map<String, String>> listDetail = new ArrayList<>();
+    private List<Map<String, String>> listHRV = new ArrayList<>();
     private List<Map<String, String>> listSleep = new ArrayList<>();
     private List<Map<String, String>> listHeart = new ArrayList<>();//单次心率历史数据
-    private List<Map<String, String>> listHistoryHeart = new ArrayList<>();
-
-
+    private List<Map<String, String>> listTemp = new ArrayList<>();
     int dataCount = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding= DataBindingUtil.setContentView(this,R.layout.activity_main);
-        sendValue(BleSDK.RealTimeStep(true,true));
         sendValue(BleSDK.GetDeviceTime());
         InitUI();
         setOnClickListener();
@@ -64,7 +61,7 @@ public class MainActivity extends BaseActivity {
                 String action = bleData.getAction();
                 if (action.equals(BleService.ACTION_GATT_onDescriptorWrite)) {
                     binding.ivConnect.setImageResource(R.drawable.connected);
-                    sendValue(BleSDK.RealTimeStep(true,true));
+                    sendValue(BleSDK.GetDeviceTime());
                     Utilities.dissMissDialog();
                 } else if (action.equals(BleService.ACTION_GATT_DISCONNECTED)) {
                     binding.ivConnect.setImageResource(R.drawable.reconnect);
@@ -120,14 +117,9 @@ public class MainActivity extends BaseActivity {
             case BleConst.GetDeviceTime:
                 binding.tvCurrentTime.setText(data.get(DeviceKey.DeviceTime));
                 sendValue(BleSDK.GetDeviceBatteryLevel());
-                getSleepData(ModeStart);
                 break;
-            case BleConst.SetPersonalInfo:
+                case BleConst.SetPersonalInfo:
                break;
-
-            case BleConst.SetDeviceTime:
-                showSetSuccessfulDialogInfo(dataType);
-                break;
             case BleConst.GetPersonalInfo:
                 String age=data.get(DeviceKey.Age);
                 String height=data.get(DeviceKey.Height);
@@ -136,6 +128,7 @@ public class MainActivity extends BaseActivity {
                 int gender= Integer.parseInt(data.get(DeviceKey.Gender));
                 break;
             case BleConst.RealTimeStep:
+                getSleepData(ModeStart);
                 Map<String, String> maps = getData(map);
                 String step = maps.get(DeviceKey.Step);
                 String cal = maps.get(DeviceKey.Calories);
@@ -147,11 +140,11 @@ public class MainActivity extends BaseActivity {
                 binding.tvKCal.setText(cal);
                 binding.tvStep.setText(step);
                 binding.tvDistanceKm.setText(distance);
-                binding.tvLastReadingTime.setText(time);
                 binding.tvHeartValue.setText(heart);
                 binding.tvAvgTemp.setText(TEMP);
                 break;
             case BleConst.GetDeviceBatteryLevel:
+                sendValue(BleSDK.RealTimeStep(true,true));
                 String battery = data.get(DeviceKey.BatteryLevel);
                 try {
                     int batteryLevel= Integer.parseInt(battery);
@@ -187,23 +180,84 @@ public class MainActivity extends BaseActivity {
                 dataCount++;
                 listSleep.addAll((List<Map<String, String>>)map.get(DeviceKey.Data));
                 if (finish) {
-                   // getDynamicHeartHistoryData(ModeStart);
+                    dataCount=0;
+                    getStaticHeartHistoryData(ModeStart);
                     saveSleepData();
-                   // disMissProgressDialog();
                 }
                 if (dataCount == 50) {
                     dataCount = 0;
                     if (finish) {
-                      //  getDynamicHeartHistoryData(ModeStart);
+                        getStaticHeartHistoryData(ModeStart);
                         saveSleepData();
-                       // disMissProgressDialog();
                     } else {
                         getSleepData(ModeContinue);
                     }
                 }
                 break;
+            case BleConst.GetStaticHR:
+                boolean end = getEnd(map);
+                dataCount++;
+                listHeart.addAll((List<Map<String,String>>) map.get(DeviceKey.Data));
+                if(end){
+                    dataCount=0;
+                    getHrvData(ModeStart);
+                    saveHeartHistoryData();
+                }
+                if(dataCount==50){
+                    dataCount=0;
+                    if(end){
+                        getHrvData(ModeStart);
+                        saveHeartHistoryData();
+                    }else{
+                        getStaticHeartHistoryData(ModeContinue);
+                    }
+                }
+                break;
+            case BleConst.GetHRVData:
+                dataCount++;
+                boolean getend = getEnd(map);
+                listHRV.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
+                if (getend) {
+                 dataCount=0;
+                 getTempData(ModeStart);
+                 saveHrvData();
+                }
+                if (dataCount == 50) {
+                   dataCount=0;
+                    if (getend) {
+                        getTempData(ModeStart);
+                        saveHrvData();
+                    } else {
+                        getHrvData(ModeContinue);
+                    }
+                }
+                break;
+            case BleConst.Temperature_history:
+                listTemp.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
+                dataCount++;
+                boolean getends = getEnd(map);
+                if(getends){
+                    dataCount=0;
+                }
+                if(dataCount==50){
+                    Log.e("sdadaa","sssssssssssssssssssss");
+                    dataCount=0;
+                    if(getends){
+                    }else{
+                        getTempData(ModeContinue);
+                    }
+                }
+                break;
         }
     }
+    private void saveHrvData(){
+        for (Map<String, String> map : listHRV) {
+               map.get(DeviceKey.HighPressure);
+               map.get(DeviceKey.LowPressure);
+               map.get(DeviceKey.HRV);
+        }
+        }
+
     private void saveSleepData() {
         int SleepQuantity=0;
         //final List<SleepData> sleepDataList = new ArrayList<>();
@@ -226,18 +280,52 @@ public class MainActivity extends BaseActivity {
         binding.tvSleepQuality.setText(String.valueOf(SleepQuantity));
 
     }
-    private void getDynamicHeartHistoryData(int mode){
-        sendValue(BleSDK.GetDynamicHRWithMode(mode));
+    private void saveHeartHistoryData() {
+        int lowest =0,highest=0,avg=0;
+        int count=0;
+        for (Map<String, String> map : listHeart) {
+            List<String> listHealth = new ArrayList<>();
+            String hrString = map.get(DeviceKey.StaticHR);
+                int hr = Utilities.getValueInt(hrString);
+                if (hr != 0) {
+                    avg+=hr;
+                    count+=1;
+                    if(hr>highest){
+                        highest=hr;
+                    }
+                    if(hr <lowest){
+                        lowest=hr;
+                    }
+                    listHealth.add(String.valueOf(hr));
+                }
+            }
+
+        binding.tvHighestValue.setText(highest+"");
+        binding.tvLowestValue.setText(lowest+"");
+        binding.tvAvgValue.setText((avg/count)+"");
     }
+
+
+
+
+
+
     private void getStaticHeartHistoryData(int mode){
         sendValue(BleSDK.GetStaticHRWithMode(mode));
     }
     private void getDetailData(int mode) {
-       // showProgressDialog("同步数据");
         sendValue(BleSDK.GetDetailActivityDataWithMode(mode));
     }
+    private void getDynamicHeartHistoryData(int mode){
+        sendValue(BleSDK.GetDynamicHRWithMode(mode));
+    }
     private void getSleepData(int mode) {
-       // showProgressDialog("同步数据");
         sendValue(BleSDK.GetDetailSleepDataWithMode(mode));
+    }
+    private void getHrvData(int mode) {
+        sendValue(BleSDK.GetHRVDataWithMode(mode));
+    }
+    private void getTempData(int mode){
+        sendValue(BleSDK.GetTemperature_historyDataWithMode(mode));
     }
 }

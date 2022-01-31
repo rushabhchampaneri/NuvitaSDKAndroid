@@ -29,7 +29,7 @@ import java.util.Locale;
 public class Utilities {
     public static Context mContext;
     public static boolean FirstFound = false;
-    private static final String PREFERENCE = "Bifi";
+    private static final String PREFERENCE = "healthmonitoringapp";
     public static ProgressDialog progressDialog;
     public static String MacAddress="";
     public static String DeviceName="";

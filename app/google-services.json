@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "365691122287",
+    "project_id": "healthmonitoring-1e14a",
+    "storage_bucket": "healthmonitoring-1e14a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:365691122287:android:a10fa2b252afaec371939a",
+        "android_client_info": {
+          "package_name": "com.ble.healthmonitoringapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "365691122287-m2plm3jbie1iuesu486dgnmmse7o08eg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ble.healthmonitoringapp",
+            "certificate_hash": "a3a4514e041baf69fd7fef880bd125ae6f52dedd"
+          }
+        },
+        {
+          "client_id": "365691122287-rt3kk4pj3cc3p087fnhjrbhu7be49fhn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGGZmZxLZCiRk7kIA_359vSExFLQWfCVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "365691122287-rt3kk4pj3cc3p087fnhjrbhu7be49fhn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
