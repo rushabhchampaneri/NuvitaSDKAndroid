@@ -33,24 +33,26 @@ public class Utilities {
     public static ProgressDialog progressDialog;
     public static String MacAddress="";
     public static String DeviceName="";
+    public static String LastReadingTime="LastReadingTime";
+    public static String LastUploadTime="LastUploadTime";
 
 
-    public static void setValue(@NonNull Context context, String key, int value) {
+    public static void setValue(@NonNull Context context, String key, String value) {
         try {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
             SharedPreferences.Editor prefsPrivateEditor = preferences.edit();
-            prefsPrivateEditor.putInt(key, value);
+            prefsPrivateEditor.putString(key, value);
             prefsPrivateEditor.commit();
         } catch (Exception e) {
 
         }
     }
 
-    public static int getValue(@NonNull Context context, String key, int defaultValue) {
-        int result = -1;
+    public static String getValue(@NonNull Context context, String key, String defaultValue) {
+        String result = "";
         try {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-            result = preferences.getInt(key, defaultValue);
+            result = preferences.getString(key, defaultValue);
         } catch (Exception e) {
 
         }
@@ -126,7 +128,7 @@ public class Utilities {
 
     public static String getCurrentTime() {
         Calendar c = Calendar.getInstance();
-        SimpleDateFormat dateformat = new SimpleDateFormat("dd-MMM-yyyy hh:mm", Locale.getDefault());
+        SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd | HH:mm:ss", Locale.getDefault());
         String datetime = dateformat.format(c.getTime());
         System.out.println(datetime);
 
@@ -149,8 +151,8 @@ public class Utilities {
             return 0;
         }
     }
-    public static String Time(String time) {
-        SimpleDateFormat parseFormat = new SimpleDateFormat("HH:mm");
+    public static String getTime(String time) {
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         SimpleDateFormat displayFormat = new SimpleDateFormat("hh:mm a");
         String str = null;
         try {

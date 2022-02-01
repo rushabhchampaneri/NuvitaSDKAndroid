@@ -180,19 +180,6 @@ public class AppMethods {
         resources.updateConfiguration(config, resources.getDisplayMetrics());
     }
 
-    public static boolean isDeviceConnected(Context context, String macAddress) {
-        BluetoothManager btManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = btManager.getAdapter();
-        if (!bluetoothAdapter.isEnabled()) {
-            return false;
-        }
-        BluetoothDevice bluetoothDevice = bluetoothAdapter.getRemoteDevice(macAddress);
-        if (btManager.getConnectionState(bluetoothDevice, BluetoothProfile.GATT) == BluetoothProfile.STATE_CONNECTED) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     public static boolean isValidEmail(CharSequence target) {
         return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());

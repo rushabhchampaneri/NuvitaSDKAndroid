@@ -21,11 +21,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.ble.BleManager;
-import com.ble.healthmonitoringapp.dialog.ConnectDeviceDialog;
-import com.ble.healthmonitoringapp.model.ConnectDeviceModel;
 import com.ble.healthmonitoringapp.utils.AppMethods;
 import com.ble.healthmonitoringapp.utils.Utilities;
-import com.bumptech.glide.Glide;
 import com.jstyle.blesdk2025.model.ExtendedBluetoothDevice;
 
 import java.util.ArrayList;

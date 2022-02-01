@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.adapter.DevicesAdapter;
-import com.ble.healthmonitoringapp.model.ConnectDeviceModel;
 import com.jstyle.blesdk2025.model.ExtendedBluetoothDevice;
 
 import java.util.ArrayList;

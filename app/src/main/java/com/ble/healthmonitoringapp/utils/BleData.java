@@ -1,8 +1,5 @@
 package com.ble.healthmonitoringapp.utils;
 
-/**
- * Created by Administrator on 2017/4/11.
- */
 
 public class BleData {
     byte[]value;

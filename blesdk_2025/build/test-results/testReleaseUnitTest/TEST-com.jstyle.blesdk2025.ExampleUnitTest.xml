@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.jstyle.blesdk2025.ExampleUnitTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-04-20T06:57:30" hostname="USER-20200628FO" time="0.0">
-  <properties/>
-  <testcase name="addition_isCorrect" classname="com.jstyle.blesdk2025.ExampleUnitTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

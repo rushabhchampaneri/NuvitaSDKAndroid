@@ -74,13 +74,14 @@
                     android:id="@+id/ivConnect"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_23sdp"
-                    android:background="@drawable/reconnect" />
+                    android:src="@drawable/connected" />
 
                 <ImageView
+                    android:id="@+id/ivUpload"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginStart="@dimen/_5sdp"
-                    android:background="@drawable/upload" />
+                    android:src="@drawable/upload" />
             </LinearLayout>
 
             <LinearLayout
@@ -195,7 +196,7 @@
                     android:includeFontPadding="false"
                     android:text="-"
                     android:textColor="@color/white"
-                    android:textSize="16sp" />
+                    android:textSize="14sp" />
 
             </FrameLayout>
 
