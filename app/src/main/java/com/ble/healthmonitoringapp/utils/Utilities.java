@@ -23,8 +23,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class Utilities {
     public static Context mContext;
@@ -135,18 +137,36 @@ public class Utilities {
         return  datetime;
 
     }
+    public static String getTime() {
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat dateformat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        String datetime = dateformat.format(c.getTime());
+        System.out.println(datetime);
+        return  datetime;
 
+    }
+    public static  HashMap<String, Object> getTimeHashmap(Map<String, Object> map){
+        HashMap<String, Object> timeMap = new HashMap<>();
+        timeMap.put(getTime(),map);
+       return timeMap;
+    }
     public static String getCurrentDate() {
         Calendar c = Calendar.getInstance();
         System.out.println("Current time => " + c.getTime());
-
-        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
         String formattedDate = df.format(c.getTime());
         return formattedDate;
     }
     public  static int getValueInt(String s){
         try {
             return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    public  static float getValueFloat(String s){
+        try {
+            return Float.parseFloat(s);
         } catch (NumberFormatException e) {
             return 0;
         }

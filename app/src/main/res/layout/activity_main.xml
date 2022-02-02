@@ -792,7 +792,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="-"
+                            android:text="0"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -828,7 +828,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
-                            android:text="-"
+                            android:text="0"
                             android:textColor="@color/white"
                             android:textSize="12sp" />
 
@@ -881,6 +881,7 @@
                     android:backgroundTint="@color/white"
                     android:fontFamily="@font/lato_bold"
                     android:gravity="center"
+                    android:visibility="gone"
                     android:includeFontPadding="true"
                     android:paddingVertical="@dimen/_7sdp"
                     android:text="Start to Measure"
@@ -1236,177 +1237,6 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:layout_gravity="center_vertical"
-                        android:src="@drawable/blood_pressor" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginStart="@dimen/_10sdp"
-                        android:layout_weight="1"
-                        android:fontFamily="@font/lato_bold"
-                        android:gravity="center_vertical"
-                        android:includeFontPadding="false"
-                        android:text="Blood Pressure"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginStart="10dp"
-                        android:src="@drawable/ic_arrow_down" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:orientation="horizontal"
-                    android:weightSum="2">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text="Avg: "
-                            android:textColor="@color/text_light_blue"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/tvAvgBloodPress"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text="-"
-                            android:textColor="@color/white"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text=" mmHg"
-                            android:textColor="@color/text_light_blue"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="start"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text="Max : "
-                            android:textColor="@color/text_light_blue"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/tvMaxBloodPress"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text="-"
-                            android:textColor="@color/white"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text=" mmHg"
-                            android:textColor="@color/text_light_blue"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:orientation="horizontal"
-                    android:weightSum="2">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text="Min : "
-                            android:textColor="@color/text_light_blue"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/tvMinBloodPress"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text="-"
-                            android:textColor="@color/white"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:fontFamily="@font/lato_bold"
-                            android:text=" mmHg"
-                            android:textColor="@color/text_light_blue"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-
-                </LinearLayout>
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.3dp"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:background="@drawable/line_5" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:orientation="vertical"
-                android:paddingHorizontal="20dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_gravity="center_vertical"
                         android:src="@drawable/stress" />
 
                     <TextView
@@ -1548,6 +1378,187 @@
                             android:layout_gravity="center_vertical"
                             android:fontFamily="@font/lato_bold"
                             android:text=" Stressed"
+                            android:textColor="@color/text_light_blue"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.3dp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/line_5" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/blood_pressor" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/lato_bold"
+                        android:gravity="center_vertical"
+                        android:includeFontPadding="false"
+                        android:text="Blood Pressure"
+                        android:textColor="@color/white"
+                        android:textSize="16sp" />
+                    <TextView
+                        android:id="@+id/tvBloodPressure"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:fontFamily="@font/lato_bold"
+                        android:gravity="center_vertical"
+                        android:text="-"
+                        android:textColor="@color/text_light_blue"
+                        android:textSize="12sp" />
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="10dp"
+                        android:visibility="gone"
+                        android:src="@drawable/ic_arrow_down" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_5sdp"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    android:weightSum="2">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text="Avg: "
+                            android:textColor="@color/text_light_blue"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvAvgBloodPress"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text="-"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" mmHg"
+                            android:textColor="@color/text_light_blue"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="start"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text="Max : "
+                            android:textColor="@color/text_light_blue"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvMaxBloodPress"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text="-"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" mmHg"
+                            android:textColor="@color/text_light_blue"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_5sdp"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    android:weightSum="2">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text="Min : "
+                            android:textColor="@color/text_light_blue"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvMinBloodPress"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text="-"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="@font/lato_bold"
+                            android:text=" mmHg"
                             android:textColor="@color/text_light_blue"
                             android:textSize="12sp" />
                     </LinearLayout>
