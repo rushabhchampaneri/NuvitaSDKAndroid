@@ -20,7 +20,7 @@
         <entry key="..\:/iottive-projects/NuvitaSDKAndroid/app/src/main/res/layout/raw_devices.xml" value="0.25416666666666665" />
         <entry key="app/src/main/res/layout/activity_ecg.xml" value="0.16" />
         <entry key="app/src/main/res/layout/activity_finding_device.xml" value="0.19322916666666667" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.5308641975308642" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.19322916666666667" />
         <entry key="app/src/main/res/layout/dialog_connect_device.xml" value="0.19322916666666667" />
         <entry key="app/src/main/res/layout/dialog_devices.xml" value="0.19322916666666667" />

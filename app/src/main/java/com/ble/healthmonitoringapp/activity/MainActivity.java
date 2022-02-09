@@ -3,10 +3,12 @@ package com.ble.healthmonitoringapp.activity;
 import androidx.databinding.DataBindingUtil;
 
 import android.content.Intent;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
+
 import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.ble.BleManager;
 import com.ble.healthmonitoringapp.ble.BleService;
@@ -14,26 +16,26 @@ import com.ble.healthmonitoringapp.databinding.ActivityMainBinding;
 import com.ble.healthmonitoringapp.utils.BleData;
 import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
 import com.ble.healthmonitoringapp.utils.FireBaseKey;
+import com.ble.healthmonitoringapp.model.HeartRateModel;
+import com.ble.healthmonitoringapp.model.HrvModel;
 import com.ble.healthmonitoringapp.utils.RxBus;
+import com.ble.healthmonitoringapp.model.StepDetailData;
 import com.ble.healthmonitoringapp.utils.Utilities;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.ble.healthmonitoringapp.model.ValuesModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.jstyle.blesdk2025.Util.BleSDK;
 import com.jstyle.blesdk2025.constant.BleConst;
 import com.jstyle.blesdk2025.constant.DeviceKey;
+import com.jstyle.blesdk2025.model.MyAutomaticHRMonitoring;
+import com.jstyle.blesdk2025.model.MyDeviceTime;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -44,10 +46,13 @@ public class MainActivity extends BaseActivity {
     ActivityMainBinding binding;
     private Disposable subscription;
     int ModeStart = 0;
+  //  int ModeStart = 2;
+
     int ModeContinue = 2;
     int ModeDelete = 0x99;
     private String date;
     List<Map<String, String>> list = new ArrayList<>();
+    private List<Map<String, String>> listDetail = new ArrayList<>();
     private List<Map<String, String>> listHRV = new ArrayList<>();
     private List<Map<String, String>> listSleep = new ArrayList<>();
     private List<Map<String, String>> listHeart = new ArrayList<>();//单次心率历史数据
@@ -56,41 +61,36 @@ public class MainActivity extends BaseActivity {
     private int MeasureTimes = 90;
     FirebaseFirestore db;
     int dataCount = 0;
+    int mood=0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding= DataBindingUtil.setContentView(this,R.layout.activity_main);
-        db= FirebaseFirestore.getInstance();
-        sendValue(BleSDK.GetDeviceTime());
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        db = FirebaseFirestore.getInstance();
+        syncData();
         InitUI();
         setOnClickListener();
     }
 
-    private void InitUI(){
+    private void InitUI() {
         binding.tvDeviceName.setText(Utilities.DeviceName);
         binding.ivConnect.setImageResource(R.drawable.connected);
-        String lastReading=  Utilities.getValue(this,Utilities.LastReadingTime,"-");
-        if(lastReading.equals("-")){
-            Utilities.setValue(this,Utilities.LastReadingTime,Utilities.getCurrentTime());
+        String lastReading = Utilities.getValue(this, Utilities.LastReadingTime, "-");
+        if (lastReading.equals("-")) {
+            Utilities.setValue(this, Utilities.LastReadingTime, Utilities.getCurrentTime());
         }
         binding.tvLastReadingTime.setText(lastReading);
-        binding.tvLastUploadTime.setText(Utilities.getValue(this,Utilities.LastUploadTime,"-"));
-
+        binding.tvLastUploadTime.setText(Utilities.getValue(this, Utilities.LastUploadTime, "-"));
         subscription = RxBus.getInstance().toObservable(BleData.class).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<BleData>() {
             @Override
             public void accept(BleData bleData) throws Exception {
                 String action = bleData.getAction();
                 if (action.equals(BleService.ACTION_GATT_onDescriptorWrite)) {
                     binding.ivConnect.setImageResource(R.drawable.connected);
-                    list.clear();
-                    listSo2.clear();
-                    listHeart.clear();
-                    listHRV.clear();
-                    listSleep.clear();
-                    listTemp.clear();
-                    sendValue(BleSDK.GetDeviceTime());
                     Utilities.dissMissDialog();
-                    Utilities.setValue(MainActivity.this,Utilities.LastReadingTime,Utilities.getCurrentTime());
+                    syncData();
+                    Utilities.setValue(MainActivity.this, Utilities.LastReadingTime, Utilities.getCurrentTime());
                 } else if (action.equals(BleService.ACTION_GATT_DISCONNECTED)) {
                     binding.ivConnect.setImageResource(R.drawable.reconnect);
                     Utilities.dissMissDialog();
@@ -99,28 +99,48 @@ public class MainActivity extends BaseActivity {
         });
 
     }
-    private void setOnClickListener(){
-        binding.ivConnect.setOnClickListener(v->{
-            if (BleManager.getInstance().isConnected()){
+
+    private void syncData() {
+        clearList();
+        setTime();
+        showProgressDialog("Please wait...");
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                disMissProgressDialog();
+                dataUpload();
+            }
+        }, 10000);
+    }
+
+    private void setOnClickListener() {
+        binding.ivConnect.setOnClickListener(v -> {
+            if (BleManager.getInstance().isConnected()) {
                 BleManager.getInstance().disconnectDevice();
                 binding.ivConnect.setImageResource(R.drawable.reconnect);
-            }else {
-               if(CheckSelfPermission.isBluetoothOn(this)){
-                  connectDevice();
-                   binding.tvLastReadingTime.setText(Utilities.getValue(MainActivity.this,Utilities.LastReadingTime,"-"));
-               }
+            } else {
+                if (CheckSelfPermission.isBluetoothOn(this)) {
+                    connectDevice();
+                    binding.tvLastReadingTime.setText(Utilities.getValue(MainActivity.this, Utilities.LastReadingTime, "-"));
+                }
             }
         });
-        binding.ivUpload.setOnClickListener(v->{
-            if(CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
-                UploadData();
-            }else {
+        binding.ivUpload.setOnClickListener(v -> {
+            if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                if (CheckSelfPermission.isBluetoothOn(this)) {
+                    if (BleManager.getInstance().isConnected()) {
+                        UploadData();
+                    } else {
+                        showToast(getString(R.string.device_disconnected));
+                    }
+                }
+            } else {
                 showToast("No Internet Connection");
             }
         });
-        binding.btnEcgMeasure.setOnClickListener(v->{
-            if(CheckSelfPermission.isBluetoothOn(this)) {
-                if(CheckSelfPermission.checkStoragePermission(this)) {
+        binding.btnEcgMeasure.setOnClickListener(v -> {
+            if (CheckSelfPermission.isBluetoothOn(this)) {
+                if (CheckSelfPermission.checkStoragePermission(this)) {
                     if (CheckSelfPermission.checkStoragePermissionRetional(this)) {
                         if (BleManager.getInstance().isConnected()) {
                             startActivity(new Intent(this, EcgActivity.class));
@@ -129,94 +149,68 @@ public class MainActivity extends BaseActivity {
                 }
             }
         });
+        binding.ivSync.setOnClickListener(v -> {
+            if (CheckSelfPermission.isBluetoothOn(this)) {
+                if (BleManager.getInstance().isConnected()) {
+                    syncData();
+                } else {
+                    showToast(getString(R.string.device_disconnected));
+                }
+            }
+        });
     }
-    private void connectDevice(){
+
+    private void connectDevice() {
         try {
             BleManager.getInstance().connectDevice(Utilities.MacAddress);
             Utilities.showConnectDialog(this);
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if(!BleManager.getInstance().isConnected()){
+                    if (!BleManager.getInstance().isConnected()) {
                         Utilities.dissMissDialog();
                         Toast.makeText(MainActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
                     }
                 }
-            },15000);
-        }catch (Exception e){
+            }, 15000);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unsubscribe();
         if (BleManager.getInstance().isConnected()) BleManager.getInstance().disconnectDevice();
     }
+
     private void unsubscribe() {
         if (subscription != null && !subscription.isDisposed()) {
             subscription.dispose();
-         //   Log.i(TAG, "unSubscribe: ");
+            //   Log.i(TAG, "unSubscribe: ");
         }
     }
-
 
     @Override
     public void dataCallback(Map<String, Object> map) {
         super.dataCallback(map);
-        String dataType= getDataType(map);
-        switch (dataType){
+        String dataType = getDataType(map);
+        Log.e("dataCallback :-","data-- "+map.toString());
+        switch (dataType) {
+            case BleConst.SetDeviceTime:
+                sendValue(BleSDK.GetDeviceTime());
+                break;
             case BleConst.GetDeviceTime:
                 binding.tvCurrentTime.setText(Utilities.getTime(getData(map).get(DeviceKey.DeviceTime)).toUpperCase());
                 sendValue(BleSDK.GetDeviceBatteryLevel());
                 break;
-                case BleConst.SetPersonalInfo:
-               break;
-            /*case BleConst.EcgppG:
-                try {
-                    Map<String, Object> mapsa=(Map<String, Object>)map.get(DeviceKey.Data);
-                    // binding.tvHrvEcg.setText("heartValue: "+mapsa.get("heartValue").toString());
-                    binding.tvHrvEcg.setText(mapsa.get("hrvValue").toString());
-                    // Quality.setText("Quality: "+mapsa.get("Quality").toString());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                break;*/
-            case BleConst.GetPersonalInfo:
-               /* String age=data.get(DeviceKey.Age);
-                String height=data.get(DeviceKey.Height);
-                String weight=data.get(DeviceKey.Weight);
-                String stepLength=data.get(DeviceKey.Stride);
-                int gender= Integer.parseInt(data.get(DeviceKey.Gender));*/
-                break;
-            case BleConst.RealTimeStep:
-                try {
-                    Map<String, String> maps = getData(map);
-                    String step = maps.get(DeviceKey.Step);
-                    String cal = maps.get(DeviceKey.Calories);
-                    String distance = maps.get(DeviceKey.Distance);
-                    String time = maps.get(DeviceKey.ExerciseMinutes);
-                    String ActiveTime = maps.get(DeviceKey.ActiveMinutes);
-                    String heart = maps.get(DeviceKey.HeartRate);
-                    String TEMP= maps.get(DeviceKey.TempData);
-                    binding.tvAvgTemp.setText(TEMP+"");
-                    binding.tvMaxTemp.setText(TEMP +"");
-                    binding.tvMinTemp.setText(TEMP+"");
-                    binding.tvKCal.setText(cal);
-                    binding.tvStep.setText(step);
-                    binding.tvDistanceKm.setText(distance);
-                    binding.tvHeartValue.setText(heart);
-                    getSleepData(ModeStart);
-                }catch (Exception e){
-                    e.printStackTrace();
-                 //   Toast.makeText(MainActivity.this,"Real Time Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case BleConst.GetDeviceBatteryLevel:
-                Map<String,String>data= getData(map);
+                case BleConst.GetDeviceBatteryLevel:
+                Map<String, String> data = getData(map);
                 String battery = data.get(DeviceKey.BatteryLevel);
+                getStaticHeartHistoryData(ModeStart);
                 try {
-                    int batteryLevel= Integer.parseInt(battery);
+                    int batteryLevel = Integer.parseInt(battery);
                     if (batteryLevel >= 0 && batteryLevel <= 10) {
                         binding.ivBattery.setImageResource(R.drawable.b_10);
                     } else if (batteryLevel >= 11 && batteryLevel <= 20) {
@@ -240,29 +234,176 @@ public class MainActivity extends BaseActivity {
                     } else {
                         binding.ivBattery.setImageResource(R.drawable.b_100);
                     }
-                    sendValue(BleSDK.RealTimeStep(true,true));
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
-                   // Toast.makeText(MainActivity.this,"Real Time Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(MainActivity.this,"Real Time Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case BleConst.GetDetailSleepData:
+            case BleConst.GetStaticHR:
+                try {
+                    boolean end = getEnd(map);
+                    dataCount++;
+                    listHeart.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
+                    if (end) {
+                        dataCount = 0;
+                        getHrvData(ModeStart);
+                        saveHeartHistoryData();
+                    }
+                    if (dataCount == 50) {
+                        dataCount = 0;
+                        if (end) {
+                            getHrvData(ModeStart);
+                            saveHeartHistoryData();
+                        } else {
+                            // getStaticHeartHistoryData(ModeContinue);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // Toast.makeText(MainActivity.this,"Heat Start Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case BleConst.GetHRVData:
+                try {
+                    dataCount++;
+                    boolean getend = getEnd(map);
+                    listHRV.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
+                    if (getend) {
+                        dataCount = 0;
+                        getTempData(ModeStart);
+                        saveHrvData();
+                    }
+                    if (dataCount == 50) {
+                        dataCount = 0;
+                        if (getend) {
+                            getTempData(ModeStart);
+                            saveHrvData();
+                        } else {
+                            //  getHrvData(ModeContinue);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    //  Toast.makeText(MainActivity.this,"HRV Start Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case BleConst.Temperature_history:
+                try {
+                    Log.e("listTemp", map.toString());
+                    //showToast(map.toString()+" ---");
+                    listTemp.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
+                    dataCount++;
+                    boolean getends = getEnd(map);
+                    if (getends) {
+                        dataCount = 0;
+                        // Toast.makeText(MainActivity.this,"Temp Start " +map.toString(),Toast.LENGTH_SHORT).show();
+                        getSO2Data(ModeStart);
+                        saveTemp();
+                    }
+                    if (dataCount == 50) {
+                        dataCount = 0;
+                        if (getends) {
+                            getSO2Data(ModeStart);
+                            //   Toast.makeText(MainActivity.this,"Temp Start " +map.toString(),Toast.LENGTH_SHORT).show();
+                            saveTemp();
+                        } else {
+                            //  getTempData(ModeContinue);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            case BleConst.Blood_oxygen:
+                try {
+                    listSo2.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
+                    dataCount++;
+                    boolean getSo2ends = getEnd(map);
+                    if (getSo2ends) {
+                        dataCount = 0;
+                        saveS02();
+                        getDetailData(ModeStart);
+                    }
+                    if (dataCount == 50) {
+                        Log.e("sdadaa", "sssssssssssssssssssss");
+                        dataCount = 0;
+                        if (getSo2ends) {
+                            saveS02();
+                            getDetailData(ModeStart);
+                        } else {
+                            //  getSO2Data(ModeContinue);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            case BleConst.GetDetailActivityData:
+                listDetail.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
+                dataCount++;
+                boolean getED = getEnd(map);
+                if (getED) {
+                    dataCount = 0;
+                    saveStepDetailData();
+                    Utilities.getValue(MainActivity.this, Utilities.LastUploadTime, Utilities.getCurrentTime());
+                    binding.tvLastUploadTime.setText(Utilities.getValue(MainActivity.this, Utilities.LastUploadTime, "-"));
+                    sendValue(BleSDK.RealTimeStep(true, true));
+                    getSleepData(ModeStart);
+                    //disMissProgressDialog();
+                    //detailDataAdapter.setData(list,DetailDataAdapter.GET_STEP_DETAIL);
+                }
+                if (dataCount == 50) {
+                    dataCount = 0;
+                    if (getED) {
+                        saveStepDetailData();
+                        Utilities.getValue(MainActivity.this, Utilities.LastUploadTime, Utilities.getCurrentTime());
+                        binding.tvLastUploadTime.setText(Utilities.getValue(MainActivity.this, Utilities.LastUploadTime, "-"));
+                        sendValue(BleSDK.RealTimeStep(true, true));
+                        getSleepData(ModeStart);
+                        //  disMissProgressDialog();
+                        // detailDataAdapter.setData(list,DetailDataAdapter.GET_STEP_DETAIL);
+                    } else {
+                        //  getDetailData(ModeContinue);
+                    }
+                }
+                break;
+            case BleConst.RealTimeStep:
+                try {
+                    Map<String, String> maps = getData(map);
+                    String step = maps.get(DeviceKey.Step);
+                    String cal = maps.get(DeviceKey.Calories);
+                    String distance = maps.get(DeviceKey.Distance);
+                    String heart = maps.get(DeviceKey.HeartRate);
+                    String TEMP = maps.get(DeviceKey.TempData);
+                    binding.tvAvgTemp.setText(TEMP + "");
+                    binding.tvMaxTemp.setText(TEMP + "");
+                    binding.tvMinTemp.setText(TEMP + "");
+                    binding.tvKCal.setText(cal);
+                    binding.tvStep.setText(step);
+                    binding.tvDistanceKm.setText(distance);
+                    binding.tvHeartValue.setText(heart);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    //   Toast.makeText(MainActivity.this,"Real Time Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
+                }
+                break;
+                 case BleConst.GetDetailSleepData:
                 try {
                     boolean finish = getEnd(map);
                     dataCount++;
                     listSleep.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
                     if (finish) {
                         dataCount = 0;
-                        getStaticHeartHistoryData(ModeStart);
                         saveSleepData();
+                        getEcgData();
                     }
                     if (dataCount == 50) {
                         dataCount = 0;
                         if (finish) {
-                            getStaticHeartHistoryData(ModeStart);
                             saveSleepData();
+                            getEcgData();
                         } else {
-                            getSleepData(ModeContinue);
+                          //  getSleepData(ModeContinue);
                         }
                     }
                 }catch (Exception e){
@@ -270,413 +411,395 @@ public class MainActivity extends BaseActivity {
                    // Toast.makeText(MainActivity.this,"Sleep Start Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case BleConst.GetStaticHR:
-               try {
-                boolean end = getEnd(map);
-                dataCount++;
-                listHeart.addAll((List<Map<String,String>>) map.get(DeviceKey.Data));
-                if(end){
-                    dataCount=0;
-                    getHrvData(ModeStart);
-                    saveHeartHistoryData();
-                }
-                if(dataCount==50){
-                    dataCount=0;
-                    if(end){
-                        getHrvData(ModeStart);
-                        saveHeartHistoryData();
-                    }else{
-                        getStaticHeartHistoryData(ModeContinue);
-                    }
-                }}catch (Exception e){
-            e.printStackTrace();
-           // Toast.makeText(MainActivity.this,"Heat Start Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
-        }
-
-                break;
-            case BleConst.GetHRVData:
+            case BleConst.EcgppG:
                 try {
-                dataCount++;
-                boolean getend = getEnd(map);
-                listHRV.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
-                if (getend) {
-                 dataCount=0;
-                 getTempData(ModeStart);
-                 saveHrvData();
-                }
-                if (dataCount == 50) {
-                   dataCount=0;
-                    if (getend) {
-                        getTempData(ModeStart);
-                        saveHrvData();
-                    } else {
-                        getHrvData(ModeContinue);
-                    }
-                }}catch (Exception e){
-            e.printStackTrace();
-          //  Toast.makeText(MainActivity.this,"HRV Start Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
-        }
-                break;
-            case BleConst.Temperature_history:
-                try {
-                    Log.e("listTemp",map.toString());
-                    //showToast(map.toString()+" ---");
-               listTemp.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
-                dataCount++;
-                boolean getends = getEnd(map);
-                if(getends){
-                    dataCount=0;
-                   // Toast.makeText(MainActivity.this,"Temp Start " +map.toString(),Toast.LENGTH_SHORT).show();
-                    getSO2Data(ModeStart);
-                    saveTemp();
-                }
-                if(dataCount==50){
-                    dataCount=0;
-                    if(getends){
-                        getSO2Data(ModeStart);
-                     //   Toast.makeText(MainActivity.this,"Temp Start " +map.toString(),Toast.LENGTH_SHORT).show();
-                        saveTemp();
-                    }else{
-                        getTempData(ModeContinue);
-                    }
-                }}catch (Exception e){
+                    Map<String, Object> mapsa=(Map<String, Object>)map.get(DeviceKey.Data);
+                    binding.tvAvgHrvEcg.setText(""+mapsa.get("heartValue").toString());
+                    binding.tvHrvEcg.setText(""+mapsa.get("hrvValue").toString());
+                    mood=Utilities.getValueInt(mapsa.get("Quality").toString().trim());
+                }catch (Exception e){
                     e.printStackTrace();
                 }
                 break;
-            case BleConst.Blood_oxygen:
-                try{
-                listSo2.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
-                dataCount++;
-                boolean getSo2ends = getEnd(map);
-                if(getSo2ends){
-                    dataCount=0;
-                    saveS02();
-                }
-                if(dataCount==50){
-                    Log.e("sdadaa","sssssssssssssssssssss");
-                    dataCount=0;
-                    if(getSo2ends){
-                        saveS02();
-                    }else{
-                        getSO2Data(ModeContinue);
-                    }
-                }}catch (Exception e){
-            e.printStackTrace();
-        }
+            case BleConst.SetPersonalInfo:
                 break;
-           /* case BleConst.GetDetailActivityData:
-                list.addAll((List<Map<String,String>>)map.get(DeviceKey.Data));
-                dataCount++;
-                boolean getED = getEnd(map);
-                if(getED){
-                    disMissProgressDialog();
-                    detailDataAdapter.setData(list,DetailDataAdapter.GET_STEP_DETAIL);
+            /*case BleConst.EcgppG:
+                try {
+                    Map<String, Object> mapsa=(Map<String, Object>)map.get(DeviceKey.Data);
+                    // binding.tvHrvEcg.setText("heartValue: "+mapsa.get("heartValue").toString());
+                    binding.tvHrvEcg.setText(mapsa.get("hrvValue").toString());
+                    // Quality.setText("Quality: "+mapsa.get("Quality").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
-                if(dataCount==50){
-                    dataCount=0;
-                    if(getED){
-                        disMissProgressDialog();
-                        detailDataAdapter.setData(list,DetailDataAdapter.GET_STEP_DETAIL);
-                    }else{
-                        getDetailData(ModeContinue);
-                    }
-                }
-
                 break;*/
+            case BleConst.GetPersonalInfo:
+               /* String age=data.get(DeviceKey.Age);
+                String height=data.get(DeviceKey.Height);
+                String weight=data.get(DeviceKey.Weight);
+                String stepLength=data.get(DeviceKey.Stride);
+                int gender= Integer.parseInt(data.get(DeviceKey.Gender));*/
+                break;
         }
     }
-   /* private void saveStepDetailData() {
-        final List<StepDetailData> stepDataList = new ArrayList<>();
-        String deviceAddress = SharedPreferenceUtils.getSpString(SharedPreferenceUtils.KEY_ADDRESS);
-        for (Map<String, String> map : listDetail) {
-            List<String> list = new ArrayList<>();
-            StepDetailData stepData = new StepDetailData();
-            stepData.setAddress(deviceAddress);
-            String date = map.get(DeviceKey.Date);
-            String totalStep = map.get(DeviceKey.KDetailMinterStep);
-            String distance = map.get(DeviceKey.Distance);
-            String cal = map.get(DeviceKey.Calories);
-            String detailStep = map.get(DeviceKey.ArraySteps);
-            String[] stepArrays = detailStep.split(" ");
-            for (String step : stepArrays) {
-                list.add(step);
-            }
-            stepData.setDate(date);
-            stepData.setStep(totalStep);
-            stepData.setDistance(distance);
-            stepData.setCal(cal);
-            stepData.setMinterStep(detailStep);
-            stepDataList.add(stepData);
-        }
-    }*/
-    private void saveTemp(){
-        try {
-            double avg=0;
-                 int  count=0;
-            ArrayList<Float> Templist=new ArrayList<>();
-            for (Map<String, String> map : listTemp) {
-               /* String[] sleepQuantity = map.get("arrayemperatureData").split(" ");
-                for (int i = 0; i < sleepQuantity.length; i++) {
-                    int temp=Utilities.getValueInt(sleepQuantity[i]);
-                       }*/
-                float temp= Utilities.getValueFloat(map.get(DeviceKey.temperature));
-                Templist.add(temp);
-                avg+=temp;
-                count+=1;
-            }
-          //  binding.tvAvgTemp.setText((avg/count)+"");
-          // binding.tvMaxTemp.setText(Collections.max(Templist) +"");
-           // binding.tvMinTemp.setText(Collections.min(Templist)+"");
-        }catch (Exception e){
-            e.printStackTrace();
-         //  Toast.makeText(MainActivity.this,"Temp Values :- "+listTemp.size(),Toast.LENGTH_SHORT).show();
-        }
 
-    }
-    private void saveS02(){
+    final List<StepDetailData> stepDataList = new ArrayList<>();
+
+    private void saveStepDetailData() {
         try {
-            ArrayList<Integer> so2List=new ArrayList<>();
-            int avg=0,count=0;
+            for (Map<String, String> map : listDetail) {
+                StepDetailData stepData = new StepDetailData();
+                String date = map.get(DeviceKey.Date);
+                String totalStep = map.get(DeviceKey.KDetailMinterStep);
+                String distance = map.get(DeviceKey.Distance);
+                String cal = map.get(DeviceKey.Calories);
+                String detailStep = map.get(DeviceKey.ArraySteps);
+                stepData.setDate(date);
+                stepData.setStep(totalStep);
+                stepData.setDistance(distance);
+                stepData.setCal(cal);
+                stepData.setMinterStep(detailStep);
+                stepDataList.add(stepData);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    ArrayList<ValuesModel> so2List = new ArrayList<>();
+    private void saveS02() {
+        try {
+            ArrayList<Integer> so2IntList = new ArrayList<>();
+            int avg = 0, count = 0;
             for (Map<String, String> map : listSo2) {
-                int s02= Utilities.getValueInt(map.get(DeviceKey.Blood_oxygen));
-                binding.tvBloodOxy.setText(listSo2.get(0).get(DeviceKey.Blood_oxygen)+"%");
-                so2List.add(s02);
-                avg+=s02;
-                count+=1;
+                int s02 = Utilities.getValueInt(map.get(DeviceKey.Blood_oxygen));
+                String time = map.get(DeviceKey.Date);
+                binding.tvBloodOxy.setText(listSo2.get(0).get(DeviceKey.Blood_oxygen) + "%");
+                so2List.add(new ValuesModel(s02, time));
+                so2IntList.add(s02);
+                avg += s02;
+                count += 1;
             }
-            binding.tvMaxOxygen.setText(Collections.max(so2List)+"%");
-            binding.tvMinOxygen.setText(Collections.min(so2List)+"%");
-            binding.tvAvgOxygen.setText((avg/count)+"%");
-        }catch (Exception e){
+            binding.tvMaxOxygen.setText(Collections.max(so2IntList) + "%");
+            binding.tvMinOxygen.setText(Collections.min(so2IntList) + "%");
+            binding.tvAvgOxygen.setText((avg / count) + "%");
+        } catch (Exception e) {
             e.printStackTrace();
-        //    Toast.makeText(MainActivity.this,"SO2 Values Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();
+            //    Toast.makeText(MainActivity.this,"SO2 Values Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();
         }
 
     }
-    private void saveHrvData(){
+
+    ArrayList<HrvModel> hrvList = new ArrayList<>();
+
+    private void saveHrvData() {
         try {
-            int avg=0,avgStress=0;
-            int count=0;
-            ArrayList<Integer> hrvList=new ArrayList<>();
-            ArrayList<Integer> stressList=new ArrayList<>();
+            int avg = 0, avgStress = 0;
+            int count = 0;
+            ArrayList<Integer> hrvIntList = new ArrayList<>();
+            ArrayList<Integer> stressList = new ArrayList<>();
             for (Map<String, String> map : listHRV) {
-                int lowBp = Utilities.getValueInt( map.get(DeviceKey.lowBP));
-                int HighBp = Utilities.getValueInt( map.get(DeviceKey.highBP));
-                int Stress = Utilities.getValueInt( map.get(DeviceKey.Stress));
-                int hrv = Utilities.getValueInt( map.get(DeviceKey.HRV));
-                hrvList.add(hrv);
+                int lowBp = Utilities.getValueInt(map.get(DeviceKey.lowBP));
+                int HighBp = Utilities.getValueInt(map.get(DeviceKey.highBP));
+                int Stress = Utilities.getValueInt(map.get(DeviceKey.Stress));
+                int hrv = Utilities.getValueInt(map.get(DeviceKey.HRV));
+                String time = map.get(DeviceKey.Date);
+                hrvIntList.add(hrv);
                 stressList.add(Stress);
-                binding.tvBloodPressure.setText(HighBp+"/"+lowBp+" mmHg");
-                avgStress+=Stress;
-                avg+=hrv;
-                count+=1;
+                hrvList.add(new HrvModel(hrv, Stress, lowBp, HighBp, time));
+                binding.tvBloodPressure.setText(HighBp + "/" + lowBp + " mmHg");
+                avgStress += Stress;
+                avg += hrv;
+                count += 1;
             }
-            binding.tvAvgStress.setText((avgStress/count)+"");
-            binding.tvMaxStress.setText(Collections.max(stressList)+"");
-            binding.tvMinStress.setText(Collections.min(stressList)+"");
-            binding.tvMaxHrv.setText(Collections.max(hrvList)+"");
-            binding.tvMinHrv.setText(Collections.min(hrvList)+"");
-            binding.tvAvgHrv.setText((avg/count)+"");
-        }catch (Exception e){
+            binding.tvAvgStress.setText((avgStress / count) + "");
+            binding.tvMaxStress.setText(Collections.max(stressList) + "");
+            binding.tvMinStress.setText(Collections.min(stressList) + "");
+            binding.tvMaxHrv.setText(Collections.max(hrvIntList) + "");
+            binding.tvMinHrv.setText(Collections.min(hrvIntList) + "");
+            binding.tvAvgHrv.setText((avg / count) + "");
+        } catch (Exception e) {
             e.printStackTrace();
-        //    Toast.makeText(MainActivity.this,"Hrv Values Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();
+            //    Toast.makeText(MainActivity.this,"Hrv Values Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();
         }
 
     }
 
+    ArrayList<ValuesModel> sleepList=new ArrayList<>();
     private void saveSleepData() {
         try {
-            int SleepQuantity=0;
-            //final List<SleepData> sleepDataList = new ArrayList<>();
+            int Sleep = 0;
             for (Map<String, String> map : listSleep) {
-                List<String> listHealth = new ArrayList<>();
                 String time = map.get(DeviceKey.Date);
-                //  long startMil = DateUtil.getDefaultLongMi(time);
                 String[] sleepQuantity = map.get(DeviceKey.ArraySleep).split(" ");
+                int SleepQuantity = 0;
                 for (int i = 0; i < sleepQuantity.length; i++) {
-                    SleepQuantity+=Utilities.getValueInt(sleepQuantity[i]);
-                    //   SleepData sleepData = new SleepData();
-                    //   sleepData.setAddress(deviceAddress);
-                    //  sleepData.setDateString(sleepQuantity[i]);
-                    //  long timeMil = startMil + 1 * 60 * 1000l * i;
-                    //sleepData.setTime(DateUtil.getFormatTimeString(timeMil));
-                    //  sleepDataList.add(sleepData);
-                    // listHealth.add(sleepQuantity[i]);
+                    SleepQuantity += Utilities.getValueInt(sleepQuantity[i]);
+                    Sleep+=SleepQuantity;
                 }
+                sleepList.add(new ValuesModel(SleepQuantity,time));
             }
-            binding.tvSleepQuality.setText(String.valueOf(SleepQuantity));
-        }catch (Exception e){
+            binding.tvSleepQuality.setText(String.valueOf(Sleep));
+        } catch (Exception e) {
             e.printStackTrace();
-         //   Toast.makeText(MainActivity.this,"SleepValues Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();
-
         }
     }
+
+    ArrayList<HeartRateModel> heartList = new ArrayList<>();
+
     private void saveHeartHistoryData() {
         try {
-            int avg=0;
-            int count=0;
-            ArrayList<Integer> heartList=new ArrayList<>();
+            ArrayList<Integer> heartIntList = new ArrayList<>();
+            int avg = 0;
+            int count = 0;
             for (Map<String, String> map : listHeart) {
                 String hrString = map.get(DeviceKey.StaticHR);
+                String time = map.get(DeviceKey.Date);
                 int hr = Utilities.getValueInt(hrString);
                 if (hr != 0) {
-                    heartList.add(hr);
-                    avg+=hr;
-                    count+=1;
+                    heartList.add(new HeartRateModel(hr, time));
+                    heartIntList.add(hr);
+                    avg += hr;
+                    count += 1;
                 }
             }
-            binding.tvHighestValue.setText(Collections.max(heartList)+"");
-            binding.tvLowestValue.setText(Collections.min(heartList)+"");
-            binding.tvAvgValue.setText((avg/count)+"");
-        }catch (Exception e){
+            binding.tvHighestValue.setText(Collections.max(heartIntList) + "");
+            binding.tvLowestValue.setText(Collections.min(heartIntList) + "");
+            binding.tvAvgValue.setText((avg / count) + "");
+        } catch (Exception e) {
             e.printStackTrace();
-           // Toast.makeText(MainActivity.this,"HeartValues Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();
+            // Toast.makeText(MainActivity.this,"HeartValues Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();
         }
     }
-    private void UploadData(){
-        showProgressDialog("Please wait....");
-        Map<String, Object> activityDetail = new HashMap<>();
-        activityDetail.put(FireBaseKey.Step, Utilities.getValueInt(binding.tvStep.getText().toString()));
-        activityDetail.put(FireBaseKey.Kcal, Utilities.getValueFloat(binding.tvKCal.getText().toString()));
-        activityDetail.put(FireBaseKey.Distance, Utilities.getValueFloat(binding.tvDistanceKm.getText().toString()));
-        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                document(Utilities.MacAddress)
-                .collection(FireBaseKey.FIREBASE_ActivityDetail)
-                .document(Utilities.getCurrentDate())
-                .set(Utilities.getTimeHashmap(activityDetail), SetOptions.merge())
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
 
-                    }
-                });
-        Map<String, Object> HeartMap = new HashMap<>();
-        HeartMap.put(FireBaseKey.HeartValue, Utilities.getValueInt(binding.tvHeartValue.getText().toString()));
-        HeartMap.put(FireBaseKey.Avg, Utilities.getValueInt(binding.tvAvgValue.getText().toString()));
-        HeartMap.put(FireBaseKey.Highest,Utilities.getValueInt( binding.tvHighestValue.getText().toString()));
-        HeartMap.put(FireBaseKey.Lowest, Utilities.getValueInt(binding.tvLowestValue.getText().toString()));
-        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                document(Utilities.MacAddress)
-                .collection(FireBaseKey.FIREBASE_HeartRate)
-                .document(Utilities.getCurrentDate())
-                .set(Utilities.getTimeHashmap(HeartMap), SetOptions.merge())
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
+    private void clearList() {
+        hrvList.clear();
+        heartList.clear();
+        so2List.clear();
+        sleepList.clear();
+        stepDataList.clear();
+        list.clear();
+        listSo2.clear();
+        listHeart.clear();
+        listHRV.clear();
+        listSleep.clear();
+        listTemp.clear();
+        listDetail.clear();
+    }
 
-                    }
-                });
-        Map<String, Object> so2Map = new HashMap<>();
-        so2Map.put(FireBaseKey.AvgOxygen,Utilities.getValueInt(binding.tvAvgOxygen.getText().toString()));
-        so2Map.put(FireBaseKey.BloodOxygen,Utilities.getValueInt(binding.tvBloodOxy.getText().toString()));
-        so2Map.put(FireBaseKey.MinOxygen,Utilities.getValueInt(binding.tvMinOxygen.getText().toString()));
-        so2Map.put(FireBaseKey.MaxOxygen,Utilities.getValueInt(binding.tvMaxOxygen.getText().toString()));
-        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                document(Utilities.MacAddress)
-                .collection(FireBaseKey.FIREBASE_SPO2)
-                .document(Utilities.getCurrentDate())
-                .set(Utilities.getTimeHashmap(so2Map), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-
-            }
-        });
-        Map<String, Object> HrvMap = new HashMap<>();
-        HrvMap.put(FireBaseKey.Avg,Utilities.getValueInt(binding.tvAvgHrv.getText().toString()));
-        HrvMap.put(FireBaseKey.Max,Utilities.getValueInt(binding.tvMaxHrv.getText().toString()));
-        HrvMap.put(FireBaseKey.Min,Utilities.getValueInt(binding.tvMinHrv.getText().toString()));
-        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                document(Utilities.MacAddress)
-                .collection(FireBaseKey.FIREBASE_HRV)
-                .document(Utilities.getCurrentDate())
-                .set(Utilities.getTimeHashmap(HrvMap), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-            }
-        });
-        Map<String, Object> TempMap = new HashMap<>();
-        TempMap.put(FireBaseKey.Avg,Utilities.getValueFloat(binding.tvAvgTemp.getText().toString()));
-        TempMap.put(FireBaseKey.Max,Utilities.getValueFloat(binding.tvMaxTemp.getText().toString()));
-        TempMap.put(FireBaseKey.Min,Utilities.getValueFloat(binding.tvMinTemp.getText().toString()));
-        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                document(Utilities.MacAddress)
-                .collection(FireBaseKey.FIREBASE_Temperature)
-                .document(Utilities.getCurrentDate())
-                .set(Utilities.getTimeHashmap(TempMap), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-            }
-        });
-        Map<String, Object> StressMap = new HashMap<>();
-        StressMap.put(FireBaseKey.Avg,Utilities.getValueInt(binding.tvAvgStress.getText().toString()));
-        StressMap.put(FireBaseKey.Max,Utilities.getValueInt(binding.tvMaxStress.getText().toString()));
-        StressMap.put(FireBaseKey.Min,Utilities.getValueInt(binding.tvMinStress.getText().toString()));
-        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                document(Utilities.MacAddress)
-                .collection(FireBaseKey.FIREBASE_Stress)
-                .document(Utilities.getCurrentDate())
-                .set(Utilities.getTimeHashmap(StressMap), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-            }
-        });
-        Map<String, Object> SleepMap = new HashMap<>();
-        SleepMap.put(FireBaseKey.Sleep,Utilities.getValueInt(binding.tvSleepQuality.getText().toString()));
-        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                document(Utilities.MacAddress)
-                .collection(FireBaseKey.FIREBASE_SleepQuality)
-                .document(Utilities.getCurrentDate())
-                .set(Utilities.getTimeHashmap(SleepMap), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-            }
-        });
-        Map<String, Object> BloodPress = new HashMap<>();
-        BloodPress.put(FireBaseKey.BPValue,binding.tvBloodPressure.getText().toString());
-        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                document(Utilities.MacAddress)
-                .collection(FireBaseKey.FIREBASE_Blood_pressure)
-                .document(Utilities.getCurrentDate())
-                .set(Utilities.getTimeHashmap(BloodPress), SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-
-            }
-        });
-        try {
+    private void UploadData() {
+       showProgressDialog("Please wait....");
+            try {
+            dataUpload();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     disMissProgressDialog();
-                    Utilities.getValue(MainActivity.this,Utilities.LastUploadTime,Utilities.getCurrentTime());
-                    binding.tvLastUploadTime.setText(Utilities.getValue(MainActivity.this,Utilities.LastUploadTime,"-"));
                     showToast("Data is Upload");
                 }
-            },6000);
-        }catch (Exception e){
+            }, 8000);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void getStaticHeartHistoryData(int mode){
+    private void setTime() {
+        java.util.Calendar calendar= java.util.Calendar.getInstance();
+        int year=calendar.get(Calendar.YEAR);
+        int month=calendar.get(Calendar.MONTH)+1;
+        int day=calendar.get(Calendar.DAY_OF_MONTH);
+        int hour=calendar.get(Calendar.HOUR_OF_DAY);
+        int min=calendar.get(Calendar.MINUTE);
+        int second=calendar.get(Calendar.SECOND);
+        MyDeviceTime setTime=new MyDeviceTime();
+        setTime.setYear(year);
+        setTime.setMonth(month);
+        setTime.setDay(day);
+        setTime.setHour(hour);
+        setTime.setMinute(min);
+        setTime.setSecond(second);
+        sendValue(BleSDK.SetDeviceTime(setTime));
+    }
+    private void dataUpload() {
+        for (int i = 0; i < heartList.size(); i++) {
+            Map<String, Object> HeartMap = new HashMap<>();
+            HeartMap.put(FireBaseKey.Values, heartList.get(i).getValue());
+            if (CheckSelfPermission.isNetworkConnected(this)) {
+                db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                        document(Utilities.MacAddress)
+                        .collection(FireBaseKey.FIREBASE_HeartRate)
+                        .document(Utilities.getDeciveDate(heartList.get(i).getDate()))
+                        .set(Utilities.getTimeHashmap(HeartMap, Utilities.getDeciveTime(heartList.get(i).getDate())), SetOptions.merge());
+            }
+        }
+        for (int i = 0; i < so2List.size(); i++) {
+            Map<String, Object> so2Map = new HashMap<>();
+            so2Map.put(FireBaseKey.Values, so2List.get(i).getValue());
+            if (CheckSelfPermission.isNetworkConnected(this)) {
+                db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                        document(Utilities.MacAddress)
+                        .collection(FireBaseKey.FIREBASE_SPO2)
+                        .document(Utilities.getDeciveDate(so2List.get(i).getDate()))
+                        .set(Utilities.getTimeHashmap(so2Map, Utilities.getDeciveTime(so2List.get(i).getDate())), SetOptions.merge());
+            }
+        }
+        for (int i = 0; i < hrvList.size(); i++) {
+            if (CheckSelfPermission.isNetworkConnected(this)) {
+                if (hrvList.get(i).getHrv() != 0) {
+                    Map<String, Object> HrvMap = new HashMap<>();
+                    HrvMap.put(FireBaseKey.Values, hrvList.get(i).getHrv());
+                        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                document(Utilities.MacAddress)
+                                .collection(FireBaseKey.FIREBASE_HRV)
+                                .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
+                                .set(Utilities.getTimeHashmap(HrvMap,Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
+                }
+            }
+        }
+        for (int i = 0; i < hrvList.size(); i++) {
+            if (hrvList.get(i).getStress() != 0) {
+                Map<String, Object> StressMap = new HashMap<>();
+                StressMap.put(FireBaseKey.Values, hrvList.get(i).getStress());
+                if (CheckSelfPermission.isNetworkConnected(this)) {
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                            document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_Stress)
+                            .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
+                            .set(Utilities.getTimeHashmap(StressMap, Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
+
+                }
+            }
+        }
+        for (int i = 0; i < hrvList.size(); i++) {
+            if (hrvList.get(i).getHighBp() != 0) {
+                Map<String, Object> BloodPress = new HashMap<>();
+                BloodPress.put(FireBaseKey.Values, hrvList.get(i).getHighBp() + "/" + hrvList.get(i).getLowBp());
+                if (CheckSelfPermission.isNetworkConnected(this)) {
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                            document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_Blood_pressure)
+                            .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
+                            .set(Utilities.getTimeHashmap(BloodPress,Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
+                }
+            }
+        }
+        for (int i = 0; i < stepDataList.size(); i++) {
+            Map<String, Object> activityDetail = new HashMap<>();
+            activityDetail.put(FireBaseKey.Step, Utilities.getValueInt(stepDataList.get(i).getStep()));
+            activityDetail.put(FireBaseKey.Kcal, Utilities.getValueFloat(stepDataList.get(i).getCal()));
+            activityDetail.put(FireBaseKey.Distance, Utilities.getValueFloat(stepDataList.get(i).getDistance()));
+            if (CheckSelfPermission.isNetworkConnected(this)) {
+                db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                        document(Utilities.MacAddress)
+                        .collection(FireBaseKey.FIREBASE_ActivityDetail)
+                        .document(Utilities.getDeciveDate(stepDataList.get(i).getDate()))
+                        .set(Utilities.getTimeHashmap(activityDetail, Utilities.getDeciveTime(stepDataList.get(i).getDate())), SetOptions.merge());
+            }
+        }
+        if (CheckSelfPermission.isNetworkConnected(this)) {
+            Map<String, Object> TempMap = new HashMap<>();
+            TempMap.put(FireBaseKey.Values, Utilities.getValueFloat(binding.tvAvgTemp.getText().toString()));
+            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                    document(Utilities.MacAddress)
+                    .collection(FireBaseKey.FIREBASE_Temperature)
+                    .document(Utilities.getCurrentDate())
+                    .set(Utilities.getTimeHashmap(TempMap), SetOptions.merge());
+        }
+        /*if (CheckSelfPermission.isNetworkConnected(this)) {
+            Map<String, Object> EcgMap = new HashMap<>();
+            EcgMap.put(FireBaseKey.HrvEcg, Utilities.getValueInt(binding.tvHrvEcg.getText().toString()));
+            EcgMap.put(FireBaseKey.HrEcg, Utilities.getValueInt(binding.tvAvgHrvEcg.getText().toString()));
+            EcgMap.put(FireBaseKey.Mood,mood);
+            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                    document(Utilities.MacAddress)
+                    .collection(FireBaseKey.FIREBASE_ECG_PPG)
+                    .document(Utilities.getCurrentDate())
+                    .set(Utilities.getTimeHashmap(EcgMap), SetOptions.merge());
+        }*/
+        try {
+            for (int i=0;i<sleepList.size();i++){
+                if (CheckSelfPermission.isNetworkConnected(this)) {
+                    Map<String, Object> SleepMap = new HashMap<>();
+                    SleepMap.put(FireBaseKey.Values,sleepList.get(i).getValue());
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                            document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_SleepQuality)
+                            .document(Utilities.getDeciveDate(sleepList.get(i).getDate()))
+                            .set(Utilities.getTimeHashmap(SleepMap, Utilities.getDeciveTime(sleepList.get(i).getDate())), SetOptions.merge());
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    private void getStaticHeartHistoryData(int mode) {
         sendValue(BleSDK.GetStaticHRWithMode(mode));
     }
+
     private void getDetailData(int mode) {
         sendValue(BleSDK.GetDetailActivityDataWithMode(mode));
     }
-    private void getDynamicHeartHistoryData(int mode){
+
+    private void getDynamicHeartHistoryData(int mode) {
         sendValue(BleSDK.GetDynamicHRWithMode(mode));
+    }
+
+    private void getEcgData(){
+        sendValue(BleSDK.enableEcgPPg(4,90));
     }
     private void getSleepData(int mode) {
         sendValue(BleSDK.GetDetailSleepDataWithMode(mode));
     }
+
     private void getHrvData(int mode) {
         sendValue(BleSDK.GetHRVDataWithMode(mode));
     }
-    private void getTempData(int mode){
+
+    private void getTempData(int mode) {
         sendValue(BleSDK.GetTemperature_historyDataWithMode(mode));
     }
-    private void getSO2Data(int mode){
+
+    private void getSO2Data(int mode) {
         sendValue(BleSDK.GetBloodOxygen(mode));
+    }
+
+//    private void setActivityTimeAlarm() {
+//        // TODO Auto-generated method stub
+//        int hourStart = timePickerStart.getCurrentHour();
+//        int minStart = timePickerStart.getCurrentMinute();
+//        int hourEnd = timePickerStop.getCurrentHour();
+//        int minEnd = timePickerStop.getCurrentMinute();
+//        int minInterval = 5;
+//
+//
+//        MyAutomaticHRMonitoring automicHeart = new MyAutomaticHRMonitoring();
+//        automicHeart.setStartHour(hourStart);
+//        automicHeart.setStartMinute(minStart);
+//        automicHeart.setEndHour(hourEnd);
+//        automicHeart.setEndMinute(minEnd);
+//        automicHeart.setTime(minInterval);
+//        automicHeart.setWeek(7);
+//        automicHeart.setOpen(1);
+//        sendValue(BleSDK.SetAutomaticHRMonitoring(automicHeart));
+//    }
+
+    private void saveTemp() {
+
+        try {
+            double avg = 0;
+            int count = 0;
+            ArrayList<Float> Templist = new ArrayList<>();
+            for (Map<String, String> map : listTemp) {
+                float temp = Utilities.getValueFloat(map.get(DeviceKey.temperature));
+                Templist.add(temp);
+                avg += temp;
+                count += 1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

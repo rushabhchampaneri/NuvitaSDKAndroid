@@ -3,6 +3,7 @@ package com.ble.healthmonitoringapp.dialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,15 +30,15 @@ public class ConnectDeviceDialog {
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
         ll_main = dialog.findViewById(R.id.ll_main);
-        ll_main.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                devicesDialog.Devicesdialog.dismiss();
-                dialog.dismiss();
-                Intent intentMain = new Intent(mContext, MainActivity.class);
-                mContext.startActivity(intentMain);
-            }
-        });
+        new Handler().postDelayed(new Runnable() {
+           @Override
+           public void run() {
+               devicesDialog.Devicesdialog.dismiss();
+               dialog.dismiss();
+               Intent intentMain = new Intent(mContext, MainActivity.class);
+               mContext.startActivity(intentMain);
+           }
+       },1500);
 
     }
 }

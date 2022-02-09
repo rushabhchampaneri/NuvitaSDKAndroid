@@ -26,6 +26,8 @@ import com.ble.healthmonitoringapp.utils.Utilities;
 import com.bumptech.glide.Glide;
 import com.jstyle.blesdk2025.model.ExtendedBluetoothDevice;
 import java.util.ArrayList;
+import java.util.Locale;
+
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -197,14 +199,15 @@ public class DeviceScanActivity extends AppCompatActivity {
                         deviceName = ResolveData.decodeDeviceName(scanRecord);
                     }
                     if (TextUtils.isEmpty(deviceName))
-                        deviceName = "unknown device";
-                    addDevice(device, deviceName, rssi);
-                    devicesDialog.show(extendedBluetoothDevices);
-
-                    if (rssi > filterRssi) {
+                    deviceName = "unknown device";
+                    if(deviceName.toLowerCase().contains("J2025E".toLowerCase())){
+                        addDevice(device, deviceName, rssi);
+                        devicesDialog.show(extendedBluetoothDevices);
+                        if (rssi > filterRssi) {
                         devicesDialog.devicesAdapter.addDevice(device, deviceName, rssi);
                         devicesDialog.devicesAdapter.notifyDataSetChanged();
                     }
+                 }
                 }
             });
         }

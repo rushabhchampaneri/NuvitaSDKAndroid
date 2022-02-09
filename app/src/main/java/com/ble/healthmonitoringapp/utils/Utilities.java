@@ -11,20 +11,15 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
-
 import com.ble.healthmonitoringapp.R;
-
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -150,6 +145,11 @@ public class Utilities {
         timeMap.put(getTime(),map);
        return timeMap;
     }
+    public static  HashMap<String, Object> getTimeHashmap(Map<String, Object> map,String time){
+        HashMap<String, Object> timeMap = new HashMap<>();
+        timeMap.put(time,map);
+        return timeMap;
+    }
     public static String getCurrentDate() {
         Calendar c = Calendar.getInstance();
         System.out.println("Current time => " + c.getTime());
@@ -170,6 +170,30 @@ public class Utilities {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+    public static String getDeciveDate(String time){
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        SimpleDateFormat displayFormat = new SimpleDateFormat("dd-MM-yyyy");
+        String str = null;
+        try {
+            Date date = parseFormat.parse(time);
+            str = displayFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return str;
+    }
+    public static String getDeciveTime(String time){
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm:ss");
+        String str = null;
+        try {
+            Date date = parseFormat.parse(time);
+            str = displayFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return str;
     }
     public static String getTime(String time) {
         SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

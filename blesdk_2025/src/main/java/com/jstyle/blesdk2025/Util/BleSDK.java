@@ -376,7 +376,7 @@ public class BleSDK {
                 ccc.put("heartValue",getValue(value[1], 0)+"");
                 ccc.put("hrvValue", getValue(value[2], 0)+"");
                 ccc.put("Quality", getValue(value[3], 0)+"");
-                bn.put(DeviceKey.DataType,BleConst. EcgppG);
+                bn.put(DeviceKey.DataType,BleConst.EcgppG);
                 bn.put(DeviceKey.End, true);
                 bn.put(DeviceKey.Data, ccc);
                 dataListener.dataCallback(bn);
@@ -870,6 +870,12 @@ public class BleSDK {
     public static byte[] GetEcgPpgStatus(){
         byte[] value = new byte[16];
         value[0]=DeviceConst.GetEcgPpgStatus;
+        crcValue(value);
+        return value;
+    }
+    public static byte[] GetEcgData(){
+        byte[] value = new byte[16];
+        value[0]=DeviceConst.CMD_ECGQuality;
         crcValue(value);
         return value;
     }

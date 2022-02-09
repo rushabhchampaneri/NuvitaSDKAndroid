@@ -79,9 +79,14 @@
                 <ImageView
                     android:id="@+id/ivUpload"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="@dimen/_5sdp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/_5sdp"
                     android:src="@drawable/upload" />
+                <ImageView
+                    android:id="@+id/ivSync"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/syncing"/>
             </LinearLayout>
 
             <LinearLayout

@@ -12,7 +12,7 @@ public class FireBaseKey {
     public static String FIREBASE_ActivityDetail="ActivityDetail";
     public static String FIREBASE_HeartRate="HeartRate";
     public static String FIREBASE_SPO2="SpO2";
-    public static String FIREBASE_ECG_PPG="Ecg&Ppg";
+    public static String FIREBASE_ECG_PPG="ECG";
     public static String FIREBASE_HRV="Hrv";
     public static String FIREBASE_Temperature="Temperature";
     public static String FIREBASE_Blood_pressure="BloodPressure";
@@ -23,6 +23,7 @@ public class FireBaseKey {
     public static String Kcal="Kcal";
     public static String Distance="Distance";
     public static String HeartValue="HeartValue";
+    public static String Values="value";
     public static String Lowest="Lowest";
     public static String Highest="Highest";
     public static String Avg="Avg";
@@ -34,9 +35,9 @@ public class FireBaseKey {
     public static String MinOxygen="MinOxygen";
     public static String BPValue="BpValue";
     public static String Sleep= "Sleep";
-    public static String HrvEcg="Hrv";
-    public static String AvgHrEcg="AvgHr";
-
+    public static String HrvEcg="HRV";
+    public static String HrEcg="HeartRate";
+    public static String Mood="Mood";
 
 
 }

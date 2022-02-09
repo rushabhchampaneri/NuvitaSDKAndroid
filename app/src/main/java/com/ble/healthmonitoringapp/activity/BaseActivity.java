@@ -3,6 +3,7 @@ package com.ble.healthmonitoringapp.activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -47,6 +48,7 @@ public  class BaseActivity extends AppCompatActivity implements DataListener2025
                 String action = bleData.getAction();
                 if (action.equals(BleService.ACTION_DATA_AVAILABLE)) {
                     byte[]value=bleData.getValue();
+                    Log.e("DataParsingWithData","Done");
                     BleSDK.DataParsingWithData(value,BaseActivity.this);
                 }
 
