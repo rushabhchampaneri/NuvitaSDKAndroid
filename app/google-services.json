@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "365691122287-fahcfg4taitsub04aflvnn7sqhcjqvc0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ble.healthmonitoringapp",
+            "certificate_hash": "d6801db4540266891fbf6601ca63427c293c6d4d"
+          }
+        },
+        {
           "client_id": "365691122287-m2plm3jbie1iuesu486dgnmmse7o08eg.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -37,6 +45,13 @@
             {
               "client_id": "365691122287-rt3kk4pj3cc3p087fnhjrbhu7be49fhn.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "365691122287-4vjc42bemlv5flcp62iejggr3dg7v4sg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.HealthMonitoring"
+              }
             }
           ]
         }

@@ -4,6 +4,7 @@ import androidx.databinding.DataBindingUtil;
 
 import android.content.Intent;
 import android.icu.util.Calendar;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -90,7 +91,6 @@ public class MainActivity extends BaseActivity {
                     binding.ivConnect.setImageResource(R.drawable.connected);
                     Utilities.dissMissDialog();
                     syncData();
-                    Utilities.setValue(MainActivity.this, Utilities.LastReadingTime, Utilities.getCurrentTime());
                 } else if (action.equals(BleService.ACTION_GATT_DISCONNECTED)) {
                     binding.ivConnect.setImageResource(R.drawable.reconnect);
                     Utilities.dissMissDialog();
@@ -103,14 +103,19 @@ public class MainActivity extends BaseActivity {
     private void syncData() {
         clearList();
         setTime();
-        showProgressDialog("Please wait...");
+        showProgressDialog("Please wait....");
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                disMissProgressDialog();
-                dataUpload();
+                if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                    Utilities.setValue(MainActivity.this, Utilities.LastReadingTime, Utilities.getCurrentTime());
+                    new LongOperation().execute();
+                }else {
+                    showToast("No Internet Connection");
+                    disMissProgressDialog();
+                }
             }
-        }, 10000);
+        }, 3000);
     }
 
     private void setOnClickListener() {
@@ -180,9 +185,10 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        if (BleManager.getInstance().isConnected()) BleManager.getInstance().disconnectDevice();
         super.onDestroy();
         unsubscribe();
-        if (BleManager.getInstance().isConnected()) BleManager.getInstance().disconnectDevice();
+
     }
 
     private void unsubscribe() {
@@ -196,7 +202,7 @@ public class MainActivity extends BaseActivity {
     public void dataCallback(Map<String, Object> map) {
         super.dataCallback(map);
         String dataType = getDataType(map);
-        Log.e("dataCallback :-","data-- "+map.toString());
+      //  Log.e("dataCallback :-","data-- "+map.toString());
         switch (dataType) {
             case BleConst.SetDeviceTime:
                 sendValue(BleSDK.GetDeviceTime());
@@ -345,7 +351,7 @@ public class MainActivity extends BaseActivity {
                 if (getED) {
                     dataCount = 0;
                     saveStepDetailData();
-                    Utilities.getValue(MainActivity.this, Utilities.LastUploadTime, Utilities.getCurrentTime());
+                    Utilities.setValue(MainActivity.this, Utilities.LastUploadTime, Utilities.getCurrentTime());
                     binding.tvLastUploadTime.setText(Utilities.getValue(MainActivity.this, Utilities.LastUploadTime, "-"));
                     sendValue(BleSDK.RealTimeStep(true, true));
                     getSleepData(ModeStart);
@@ -356,7 +362,7 @@ public class MainActivity extends BaseActivity {
                     dataCount = 0;
                     if (getED) {
                         saveStepDetailData();
-                        Utilities.getValue(MainActivity.this, Utilities.LastUploadTime, Utilities.getCurrentTime());
+                        Utilities.setValue(MainActivity.this, Utilities.LastUploadTime, Utilities.getCurrentTime());
                         binding.tvLastUploadTime.setText(Utilities.getValue(MainActivity.this, Utilities.LastUploadTime, "-"));
                         sendValue(BleSDK.RealTimeStep(true, true));
                         getSleepData(ModeStart);
@@ -588,19 +594,13 @@ public class MainActivity extends BaseActivity {
     }
 
     private void UploadData() {
-       showProgressDialog("Please wait....");
             try {
-            dataUpload();
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    disMissProgressDialog();
-                    showToast("Data is Upload");
-                }
-            }, 8000);
-        } catch (Exception e) {
+                showProgressDialog("Please wait....");
+                new LongOperation().execute();
+            } catch (Exception e) {
             e.printStackTrace();
-        }
+                  disMissProgressDialog();
+            }
     }
 
     private void setTime() {
@@ -620,91 +620,117 @@ public class MainActivity extends BaseActivity {
         setTime.setSecond(second);
         sendValue(BleSDK.SetDeviceTime(setTime));
     }
+    private class LongOperation extends AsyncTask<Void, Void, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            dataUpload();
+            return "Executed";
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    disMissProgressDialog();
+                    showToast("Data is Upload");
+                }
+            }, 8000);
+        }
+    }
+
     private void dataUpload() {
         for (int i = 0; i < heartList.size(); i++) {
-            Map<String, Object> HeartMap = new HashMap<>();
-            HeartMap.put(FireBaseKey.Values, heartList.get(i).getValue());
-            if (CheckSelfPermission.isNetworkConnected(this)) {
-                db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                        document(Utilities.MacAddress)
-                        .collection(FireBaseKey.FIREBASE_HeartRate)
-                        .document(Utilities.getDeciveDate(heartList.get(i).getDate()))
-                        .set(Utilities.getTimeHashmap(HeartMap, Utilities.getDeciveTime(heartList.get(i).getDate())), SetOptions.merge());
-            }
-        }
-        for (int i = 0; i < so2List.size(); i++) {
-            Map<String, Object> so2Map = new HashMap<>();
-            so2Map.put(FireBaseKey.Values, so2List.get(i).getValue());
-            if (CheckSelfPermission.isNetworkConnected(this)) {
-                db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                        document(Utilities.MacAddress)
-                        .collection(FireBaseKey.FIREBASE_SPO2)
-                        .document(Utilities.getDeciveDate(so2List.get(i).getDate()))
-                        .set(Utilities.getTimeHashmap(so2Map, Utilities.getDeciveTime(so2List.get(i).getDate())), SetOptions.merge());
-            }
-        }
-        for (int i = 0; i < hrvList.size(); i++) {
-            if (CheckSelfPermission.isNetworkConnected(this)) {
-                if (hrvList.get(i).getHrv() != 0) {
-                    Map<String, Object> HrvMap = new HashMap<>();
-                    HrvMap.put(FireBaseKey.Values, hrvList.get(i).getHrv());
+                    Map<String, Object> HeartMap = new HashMap<>();
+                    HeartMap.put(FireBaseKey.Values, heartList.get(i).getValue());
+                    if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
                         db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                 document(Utilities.MacAddress)
-                                .collection(FireBaseKey.FIREBASE_HRV)
-                                .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
-                                .set(Utilities.getTimeHashmap(HrvMap,Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
+                                .collection(FireBaseKey.FIREBASE_HeartRate)
+                                .document(Utilities.getDeciveDate(heartList.get(i).getDate()))
+                                .set(Utilities.getTimeHashmap(HeartMap, Utilities.getDeciveTime(heartList.get(i).getDate())), SetOptions.merge());
+                    }
                 }
-            }
-        }
-        for (int i = 0; i < hrvList.size(); i++) {
-            if (hrvList.get(i).getStress() != 0) {
-                Map<String, Object> StressMap = new HashMap<>();
-                StressMap.put(FireBaseKey.Values, hrvList.get(i).getStress());
-                if (CheckSelfPermission.isNetworkConnected(this)) {
-                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                            document(Utilities.MacAddress)
-                            .collection(FireBaseKey.FIREBASE_Stress)
-                            .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
-                            .set(Utilities.getTimeHashmap(StressMap, Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
+                for (int i = 0; i < so2List.size(); i++) {
+                    Map<String, Object> so2Map = new HashMap<>();
+                    so2Map.put(FireBaseKey.Values, so2List.get(i).getValue());
+                    if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                document(Utilities.MacAddress)
+                                .collection(FireBaseKey.FIREBASE_SPO2)
+                                .document(Utilities.getDeciveDate(so2List.get(i).getDate()))
+                                .set(Utilities.getTimeHashmap(so2Map, Utilities.getDeciveTime(so2List.get(i).getDate())), SetOptions.merge());
+                    }
+                }
+                for (int i = 0; i < hrvList.size(); i++) {
+                    if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                        if (hrvList.get(i).getHrv() != 0) {
+                            Map<String, Object> HrvMap = new HashMap<>();
+                            HrvMap.put(FireBaseKey.Values, hrvList.get(i).getHrv());
+                            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                    document(Utilities.MacAddress)
+                                    .collection(FireBaseKey.FIREBASE_HRV)
+                                    .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
+                                    .set(Utilities.getTimeHashmap(HrvMap,Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
+                        }
+                    }
+                }
+                for (int i = 0; i < hrvList.size(); i++) {
+                    if (hrvList.get(i).getStress() != 0) {
+                        Map<String, Object> StressMap = new HashMap<>();
+                        StressMap.put(FireBaseKey.Values, hrvList.get(i).getStress());
+                        if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                    document(Utilities.MacAddress)
+                                    .collection(FireBaseKey.FIREBASE_Stress)
+                                    .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
+                                    .set(Utilities.getTimeHashmap(StressMap, Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
 
+                        }
+                    }
                 }
-            }
-        }
-        for (int i = 0; i < hrvList.size(); i++) {
-            if (hrvList.get(i).getHighBp() != 0) {
-                Map<String, Object> BloodPress = new HashMap<>();
-                BloodPress.put(FireBaseKey.Values, hrvList.get(i).getHighBp() + "/" + hrvList.get(i).getLowBp());
-                if (CheckSelfPermission.isNetworkConnected(this)) {
+                for (int i = 0; i < hrvList.size(); i++) {
+                    if (hrvList.get(i).getHighBp() != 0) {
+                        Log.e("stepDataList",hrvList.size()+" ");
+                        Map<String, Object> BloodPress = new HashMap<>();
+                        BloodPress.put(FireBaseKey.Values, hrvList.get(i).getHighBp() + "/" + hrvList.get(i).getLowBp());
+                        if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                    document(Utilities.MacAddress)
+                                    .collection(FireBaseKey.FIREBASE_Blood_pressure)
+                                    .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
+                                    .set(Utilities.getTimeHashmap(BloodPress,Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
+                        }
+                    }
+                }
+                for (int i = 0; i < stepDataList.size(); i++) {
+                    Map<String, Object> activityDetail = new HashMap<>();
+                    Log.e("stepDataList",stepDataList.size()+" ");
+                    activityDetail.put(FireBaseKey.Step, Utilities.getValueInt(stepDataList.get(i).getStep()));
+                    activityDetail.put(FireBaseKey.Kcal, Utilities.getValueFloat(stepDataList.get(i).getCal()));
+                    activityDetail.put(FireBaseKey.Distance, Utilities.getValueFloat(stepDataList.get(i).getDistance()));
+                    if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                document(Utilities.MacAddress)
+                                .collection(FireBaseKey.FIREBASE_ActivityDetail)
+                                .document(Utilities.getDeciveDate(stepDataList.get(i).getDate()))
+                                .set(Utilities.getTimeHashmap(activityDetail, Utilities.getDeciveTime(stepDataList.get(i).getDate())), SetOptions.merge());
+                    }
+                }
+                if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                    Map<String, Object> TempMap = new HashMap<>();
+                    TempMap.put(FireBaseKey.Values, Utilities.getValueFloat(binding.tvAvgTemp.getText().toString()));
                     db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                             document(Utilities.MacAddress)
-                            .collection(FireBaseKey.FIREBASE_Blood_pressure)
-                            .document(Utilities.getDeciveDate(hrvList.get(i).getDate()))
-                            .set(Utilities.getTimeHashmap(BloodPress,Utilities.getDeciveTime(hrvList.get(i).getDate())), SetOptions.merge());
+                            .collection(FireBaseKey.FIREBASE_Temperature)
+                            .document(Utilities.getCurrentDate())
+                            .set(Utilities.getTimeHashmap(TempMap), SetOptions.merge());
                 }
-            }
-        }
-        for (int i = 0; i < stepDataList.size(); i++) {
-            Map<String, Object> activityDetail = new HashMap<>();
-            activityDetail.put(FireBaseKey.Step, Utilities.getValueInt(stepDataList.get(i).getStep()));
-            activityDetail.put(FireBaseKey.Kcal, Utilities.getValueFloat(stepDataList.get(i).getCal()));
-            activityDetail.put(FireBaseKey.Distance, Utilities.getValueFloat(stepDataList.get(i).getDistance()));
-            if (CheckSelfPermission.isNetworkConnected(this)) {
-                db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                        document(Utilities.MacAddress)
-                        .collection(FireBaseKey.FIREBASE_ActivityDetail)
-                        .document(Utilities.getDeciveDate(stepDataList.get(i).getDate()))
-                        .set(Utilities.getTimeHashmap(activityDetail, Utilities.getDeciveTime(stepDataList.get(i).getDate())), SetOptions.merge());
-            }
-        }
-        if (CheckSelfPermission.isNetworkConnected(this)) {
-            Map<String, Object> TempMap = new HashMap<>();
-            TempMap.put(FireBaseKey.Values, Utilities.getValueFloat(binding.tvAvgTemp.getText().toString()));
-            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                    document(Utilities.MacAddress)
-                    .collection(FireBaseKey.FIREBASE_Temperature)
-                    .document(Utilities.getCurrentDate())
-                    .set(Utilities.getTimeHashmap(TempMap), SetOptions.merge());
-        }
         /*if (CheckSelfPermission.isNetworkConnected(this)) {
             Map<String, Object> EcgMap = new HashMap<>();
             EcgMap.put(FireBaseKey.HrvEcg, Utilities.getValueInt(binding.tvHrvEcg.getText().toString()));
@@ -716,21 +742,23 @@ public class MainActivity extends BaseActivity {
                     .document(Utilities.getCurrentDate())
                     .set(Utilities.getTimeHashmap(EcgMap), SetOptions.merge());
         }*/
-        try {
-            for (int i=0;i<sleepList.size();i++){
-                if (CheckSelfPermission.isNetworkConnected(this)) {
-                    Map<String, Object> SleepMap = new HashMap<>();
-                    SleepMap.put(FireBaseKey.Values,sleepList.get(i).getValue());
-                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                            document(Utilities.MacAddress)
-                            .collection(FireBaseKey.FIREBASE_SleepQuality)
-                            .document(Utilities.getDeciveDate(sleepList.get(i).getDate()))
-                            .set(Utilities.getTimeHashmap(SleepMap, Utilities.getDeciveTime(sleepList.get(i).getDate())), SetOptions.merge());
+                try {
+                    for (int i=0;i<sleepList.size();i++){
+                        if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                            Log.e("sleepList",sleepList.size()+" ");
+                            Map<String, Object> SleepMap = new HashMap<>();
+                            SleepMap.put(FireBaseKey.Values,sleepList.get(i).getValue());
+                            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                    document(Utilities.MacAddress)
+                                    .collection(FireBaseKey.FIREBASE_SleepQuality)
+                                    .document(Utilities.getDeciveDate(sleepList.get(i).getDate()))
+                                    .set(Utilities.getTimeHashmap(SleepMap, Utilities.getDeciveTime(sleepList.get(i).getDate())), SetOptions.merge());
+                        }
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                    disMissProgressDialog();
                 }
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
 
     }
 
