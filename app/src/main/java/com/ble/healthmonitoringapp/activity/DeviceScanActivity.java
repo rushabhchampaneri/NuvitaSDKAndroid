@@ -103,12 +103,14 @@ public class DeviceScanActivity extends AppCompatActivity {
         }
     }
     private boolean checkselfPermission(){
+        if(CheckSelfPermission.isBluetooth12Permission(DeviceScanActivity.this)){
         if (CheckSelfPermission.isBluetoothOn(DeviceScanActivity.this)){
             if (CheckSelfPermission.isLocationOn(DeviceScanActivity.this)){
                 if(checkLocationPermission()){
                     return true;
                 }
             }
+        }
         }
         return false;
     }

@@ -87,7 +87,18 @@ public class CheckSelfPermission {
         }
         return true;
     }
-
+    public static boolean isBluetooth12Permission(Context context){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_DENIED||ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
+                ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH_CONNECT}, 2);
+                return false;
+            }else {
+                return true;
+            }
+        }else {
+            return true;
+        }
+    }
     public static boolean checkStoragePermissionRetional(Context context) {
         try {
             if (permissiondiaog != null) {

@@ -124,9 +124,11 @@ public class MainActivity extends BaseActivity {
                 BleManager.getInstance().disconnectDevice();
                 binding.ivConnect.setImageResource(R.drawable.reconnect);
             } else {
-                if (CheckSelfPermission.isBluetoothOn(this)) {
-                    connectDevice();
-                    binding.tvLastReadingTime.setText(Utilities.getValue(MainActivity.this, Utilities.LastReadingTime, "-"));
+                if (CheckSelfPermission.isBluetooth12Permission(MainActivity.this)) {
+                    if (CheckSelfPermission.isBluetoothOn(this)) {
+                        connectDevice();
+                        binding.tvLastReadingTime.setText(Utilities.getValue(MainActivity.this, Utilities.LastReadingTime, "-"));
+                    }
                 }
             }
         });
@@ -155,13 +157,14 @@ public class MainActivity extends BaseActivity {
             }
         });
         binding.ivSync.setOnClickListener(v -> {
-            if (CheckSelfPermission.isBluetoothOn(this)) {
+            if (CheckSelfPermission.isBluetooth12Permission(MainActivity.this)) {
+                if (CheckSelfPermission.isBluetoothOn(this)) {
                 if (BleManager.getInstance().isConnected()) {
                     syncData();
                 } else {
                     showToast(getString(R.string.device_disconnected));
                 }
-            }
+            } }
         });
     }
 

@@ -4,8 +4,8 @@
 4
 5    <uses-sdk
 6        android:minSdkVersion="18"
-6-->C:\Users\Admin\StudioProjects\NuvitaSDKAndroid\blesdk_2025\src\main\AndroidManifest.xml
+6-->/home/ubuntu/IottiveProject/NuvitaSDKAndroid/blesdk_2025/src/main/AndroidManifest.xml
 7        android:targetSdkVersion="30" />
-7-->C:\Users\Admin\StudioProjects\NuvitaSDKAndroid\blesdk_2025\src\main\AndroidManifest.xml
+7-->/home/ubuntu/IottiveProject/NuvitaSDKAndroid/blesdk_2025/src/main/AndroidManifest.xml
 8
 9</manifest>
