@@ -7,6 +7,7 @@ import android.icu.util.Calendar;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,6 +15,7 @@ import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.ble.BleManager;
 import com.ble.healthmonitoringapp.ble.BleService;
 import com.ble.healthmonitoringapp.databinding.ActivityMainBinding;
+import com.ble.healthmonitoringapp.model.EcgHistoryData;
 import com.ble.healthmonitoringapp.utils.BleData;
 import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
 import com.ble.healthmonitoringapp.utils.FireBaseKey;
@@ -31,6 +33,7 @@ import com.jstyle.blesdk2025.constant.DeviceKey;
 import com.jstyle.blesdk2025.model.MyAutomaticHRMonitoring;
 import com.jstyle.blesdk2025.model.MyDeviceTime;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,11 +49,11 @@ public class MainActivity extends BaseActivity {
 
     ActivityMainBinding binding;
     private Disposable subscription;
-    int ModeStart = 0;
+    byte ModeStart = 0;
   //  int ModeStart = 2;
 
-    int ModeContinue = 2;
-    int ModeDelete = 0x99;
+    byte ModeContinue = 2;
+    byte ModeDelete = (byte)0x99;
     private String date;
     List<Map<String, String>> list = new ArrayList<>();
     private List<Map<String, String>> listDetail = new ArrayList<>();
@@ -150,7 +153,7 @@ public class MainActivity extends BaseActivity {
                 if (CheckSelfPermission.checkStoragePermission(this)) {
                     if (CheckSelfPermission.checkStoragePermissionRetional(this)) {
                         if (BleManager.getInstance().isConnected()) {
-                            startActivity(new Intent(this, EcgActivity.class));
+                            getEcgData();
                         }
                     }
                 }
@@ -166,6 +169,7 @@ public class MainActivity extends BaseActivity {
                 }
             } }
         });
+
     }
 
     private void connectDevice() {
@@ -404,13 +408,11 @@ public class MainActivity extends BaseActivity {
                     if (finish) {
                         dataCount = 0;
                         saveSleepData();
-                        getEcgData();
                     }
                     if (dataCount == 50) {
                         dataCount = 0;
                         if (finish) {
                             saveSleepData();
-                            getEcgData();
                         } else {
                           //  getSleepData(ModeContinue);
                         }
@@ -420,7 +422,7 @@ public class MainActivity extends BaseActivity {
                    // Toast.makeText(MainActivity.this,"Sleep Start Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case BleConst.EcgppG:
+           /* case BleConst.EcgppG:
                 try {
                     Map<String, Object> mapsa=(Map<String, Object>)map.get(DeviceKey.Data);
                     binding.tvAvgHrvEcg.setText(""+mapsa.get("heartValue").toString());
@@ -429,19 +431,63 @@ public class MainActivity extends BaseActivity {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                break;
+                break;*/
+                case BleConst.ECGdata:
+                boolean finish=getEnd(map);
+                Map<String,String>ecgmaps= getData(map);
+                if (null!=ecgmaps.get(DeviceKey.Date)) {
+                    String KDate = ecgmaps.get(DeviceKey.Date);
+                    ecgDate = KDate;
+                    stringBuffer = new StringBuffer();
+                    healthEcgData = new EcgHistoryData();
+                    int hrv = Integer.parseInt(ecgmaps.get(DeviceKey.HRV));
+                    int hr = Integer.parseInt(ecgmaps.get(DeviceKey.HeartRate));
+                    int moodValue = Integer.parseInt(ecgmaps.get(DeviceKey.ECGMoodValue));
+                    binding.tvAvgHrvEcg.setText(""+hr);
+                    binding.tvHrvEcg.setText(""+hrv);
+                    mood=moodValue;
+                    healthEcgData.setTime(ecgDate);
+                    healthEcgData.setHrv(hrv);
+                    healthEcgData.setHeartRate(hr);
+                    healthEcgData.setBreathValue(moodValue);
+                    healthEcgData.setAddress(address);
+                }
+                if (null!=ecgmaps.get(DeviceKey.ECGValue)) {
+                    String ecgData = ecgmaps.get(DeviceKey.ECGValue);
+                    stringBuffer.append(ecgData);
+                }if (finish) {
+                    if (!TextUtils.isEmpty(ecgDate)) {
+                        healthEcgData.setArrayECGData(stringBuffer.toString());
+                        ecgDataList.add(healthEcgData);
+                        if(ecgDataList.size()!=0){
+                            Intent intent=    new Intent(this,EcgReportActivity.class);
+                            intent.putExtra("ecgData", (Serializable) ecgDataList)  ;
+                            startActivity(intent);
+                        }
+                        Log.e("jsjsjsj","isEmpty(ecgDate)"+ecgDate+"***"+ecgDataList.size());
+                        if ( !ecgDate.equals(lastEcgDate) &&index < 9) {
+                            index++;
+                            ecgDate = "";
+                            //sendValue(BleSDK.GetECGwaveform(true,index,lastEcgDate));
+                        } else {
+                            Log.e("jsjsjsj","end__ecgDate");
+                            ecgDate = "";
+                            index = 0;
+                      // last
+
+                        }
+                    } else {
+                        Log.e("jsjsjsj","end__ecgDate");
+                        ecgDate = "";
+                        index = 0;
+                        Intent intent=    new Intent(this,EcgReportActivity.class);
+                        intent.putExtra("ecgData", (Serializable) ecgDataList)  ;
+                        startActivity(intent);
+                    // lastEcgDate
+                    }
+                }
             case BleConst.SetPersonalInfo:
                 break;
-            /*case BleConst.EcgppG:
-                try {
-                    Map<String, Object> mapsa=(Map<String, Object>)map.get(DeviceKey.Data);
-                    // binding.tvHrvEcg.setText("heartValue: "+mapsa.get("heartValue").toString());
-                    binding.tvHrvEcg.setText(mapsa.get("hrvValue").toString());
-                    // Quality.setText("Quality: "+mapsa.get("Quality").toString());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                break;*/
             case BleConst.GetPersonalInfo:
                /* String age=data.get(DeviceKey.Age);
                 String height=data.get(DeviceKey.Height);
@@ -451,6 +497,14 @@ public class MainActivity extends BaseActivity {
                 break;
         }
     }
+
+    int index=0;
+    private  String ecgDate;
+    private String lastEcgDate;
+    StringBuffer   stringBuffer;
+    EcgHistoryData healthEcgData;
+    String address="";
+    ArrayList<EcgHistoryData> ecgDataList = new ArrayList<>();
 
     final List<StepDetailData> stepDataList = new ArrayList<>();
 
@@ -765,35 +819,35 @@ public class MainActivity extends BaseActivity {
 
     }
 
-    private void getStaticHeartHistoryData(int mode) {
-        sendValue(BleSDK.GetStaticHRWithMode(mode));
+    private void getStaticHeartHistoryData(byte mode) {
+        sendValue(BleSDK.GetStaticHRWithMode(mode,""));
     }
 
-    private void getDetailData(int mode) {
-        sendValue(BleSDK.GetDetailActivityDataWithMode(mode));
+    private void getDetailData(byte mode) {
+        sendValue(BleSDK.GetDetailActivityDataWithMode(mode,""));
     }
 
-    private void getDynamicHeartHistoryData(int mode) {
-        sendValue(BleSDK.GetDynamicHRWithMode(mode));
+    private void getDynamicHeartHistoryData(byte mode) {
+        sendValue(BleSDK.GetDynamicHRWithMode(mode,""));
     }
 
     private void getEcgData(){
-        sendValue(BleSDK.enableEcgPPg(4,90));
+        sendValue(BleSDK.GetECGwaveform(true,0x00));
     }
-    private void getSleepData(int mode) {
-        sendValue(BleSDK.GetDetailSleepDataWithMode(mode));
-    }
-
-    private void getHrvData(int mode) {
-        sendValue(BleSDK.GetHRVDataWithMode(mode));
+    private void getSleepData(byte mode) {
+        sendValue(BleSDK.GetDetailSleepDataWithMode(mode,""));
     }
 
-    private void getTempData(int mode) {
-        sendValue(BleSDK.GetTemperature_historyDataWithMode(mode));
+    private void getHrvData(byte mode) {
+        sendValue(BleSDK.GetHRVDataWithMode(mode,""));
     }
 
-    private void getSO2Data(int mode) {
-        sendValue(BleSDK.GetBloodOxygen(mode));
+    private void getTempData(byte mode) {
+        sendValue(BleSDK.GetTemperature_historyDataWithMode(mode,""));
+    }
+
+    private void getSO2Data(byte mode) {
+        sendValue(BleSDK.GetBloodOxygen(mode,""));
     }
 
 //    private void setActivityTimeAlarm() {

@@ -16,8 +16,8 @@ public class MyDeviceInfo extends SendData{
     boolean Social_distance_switch;//社交距离开关 Social distance switch
     boolean Chinese_English_switch;//中英文切换 Chinese_English_switch
     int baseheart=60;//Basic heart rate
-    int ScreenBrightness;//Screen brightness  屏幕亮度
-    int Dialinterface;//表盘更换 Dial replacement 0-10
+    int ScreenBrightness=-1;//Screen brightness  屏幕亮度0-5
+    int Dialinterface=-1;//表盘更换 Dial replacement 0-10
 
     public boolean isTemperature_unit() {
         return Temperature_unit;

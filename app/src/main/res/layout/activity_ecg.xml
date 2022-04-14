@@ -66,7 +66,7 @@
                 android:layout_margin="@dimen/_12sdp"
                 android:includeFontPadding="true"
                 android:paddingVertical="@dimen/_7sdp"
-                android:text="@string/start_to_meaurse"
+                android:text="@string/genrate_ecg_report"
                 android:textColor="@color/text_blue"
                 android:textSize="14sp" />
 

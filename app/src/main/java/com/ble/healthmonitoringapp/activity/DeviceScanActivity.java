@@ -1,5 +1,6 @@
 package com.ble.healthmonitoringapp.activity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -92,12 +93,6 @@ public class DeviceScanActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        /* Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
-        List<ExtendedBluetoothDevice> list = new ArrayList<>();
-        for (BluetoothDevice device : devices) {
-            list.add(new ExtendedBluetoothDevice(device));
-        }
-        devicesDialog.devicesAdapter.addBondDevice(list);*/
         if(checkselfPermission()) {
             scanLeDevice(true);
         }
@@ -145,10 +140,12 @@ public class DeviceScanActivity extends AppCompatActivity {
     }
 
 
+    @SuppressLint("MissingPermission")
     private void scanLeDevice(final boolean enable) {
 
         if (enable) {
             mHandler.postDelayed(new Runnable() {
+                @SuppressLint("MissingPermission")
                 @Override
                 public void run() {
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -196,7 +193,7 @@ public class DeviceScanActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    String deviceName = device.getName();
+                    @SuppressLint("MissingPermission") String deviceName = device.getName();
                     if (TextUtils.isEmpty(deviceName)) {
                         deviceName = ResolveData.decodeDeviceName(scanRecord);
                     }

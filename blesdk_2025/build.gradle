@@ -1,5 +1,7 @@
-apply plugin: 'com.android.library'
-//apply plugin: 'maven'
+plugins {
+    id 'com.android.library'
+    id 'maven'
+}
 
 android {
     compileSdkVersion 30
@@ -12,8 +14,8 @@ android {
 
         minSdkVersion 18
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode 10
+        versionName "10.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -28,6 +30,7 @@ android {
         archiveName = '2025sdk' + defaultConfig.versionName + '.jar'
         destinationDir = file('build/libs')
         include "com/jstyle/blesdk2025/**"
+
     }
     makejar.dependsOn(build)
 }

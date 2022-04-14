@@ -886,10 +886,10 @@
                     android:backgroundTint="@color/white"
                     android:fontFamily="@font/lato_bold"
                     android:gravity="center"
-                    android:visibility="gone"
+                    android:visibility="visible"
                     android:includeFontPadding="true"
                     android:paddingVertical="@dimen/_7sdp"
-                    android:text="Start to Measure"
+                    android:text="@string/view_ecg_report"
                     android:textColor="@color/text_blue"
                     android:textSize="14sp" />
             </LinearLayout>

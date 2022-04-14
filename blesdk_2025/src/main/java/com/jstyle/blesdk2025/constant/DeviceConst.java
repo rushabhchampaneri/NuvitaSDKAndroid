@@ -23,8 +23,8 @@ public class DeviceConst {
     public static final byte CMD_Set_MOT_SIGN = (byte)0x36;
     public static final byte CMD_Set_Name = (byte)0x3d;
     public static final byte CMD_Get_Name = (byte)0x3e;
-    public static final byte CMD_Set_AutoHeart = (byte)0x2a;
-    public static final byte CMD_Get_AutoHeart = (byte)0x2b;
+    public static final byte CMD_Set_Auto = (byte)0x2a;
+    public static final byte CMD_Get_Auto = (byte)0x2b;
     public static final byte CMD_Set_Clock = (byte)0x23;
     public static final byte CMD_Notify = (byte)0x4d;
     public static final byte CMD_Set_ActivityAlarm = (byte)0x25;
@@ -74,4 +74,6 @@ public class DeviceConst {
     public static final byte GetECGwaveform = (byte)0x71;
     public static final byte GetAutomaticSpo2Monitoring = (byte)0x66;
     public static final byte spo2= (byte)0x29;
+    public static final byte MeasurementWithType= (byte)0x28;
+    public static final byte Qrcode = (byte)0xB0;
 }

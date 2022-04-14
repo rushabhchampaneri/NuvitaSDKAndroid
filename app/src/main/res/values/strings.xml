@@ -45,5 +45,7 @@ It can be enabled under Phone Settings>Apps>Permissions, SET NOW?
     <string name="access_no">NOT NOW</string>
     <string name="start_to_meaurse">Start to Measure</string>
     <string name="stop">Stop</string>
+    <string name="view_ecg_report">View ECG Report</string>
+    <string name="genrate_ecg_report">Generate Ecg Report</string>
 
 </resources>

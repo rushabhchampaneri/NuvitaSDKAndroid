@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import static com.jstyle.blesdk2025.Util.BleSDK.read;
+
 /**
  * Created by Administrator on 2018/1/17.
  */
@@ -116,7 +118,7 @@ public class ResolveUtil {
         maps.put(DeviceKey.End,false);
         List<Map<String, String>> list = new ArrayList<>();
         maps.put(DeviceKey.Data, list);
-        int count = 11;
+        int count = 10;
         int length = value.length;
         int size = length / count;
         if (size == 0) {
@@ -134,7 +136,6 @@ public class ResolveUtil {
                     + ByteToHexString(value[6 + i * count]) + ":" + ByteToHexString(value[7 + i * count]) + ":" + ByteToHexString(value[8 + i * count]);
             hashMap.put(DeviceKey.Date, date);
             hashMap.put(DeviceKey.Blood_oxygen, String.valueOf(getValue(value[9 + i * count], 0)));
-            hashMap.put(DeviceKey.automatic, String.valueOf(getValue(value[10 + i * count], 0)));
             list.add(hashMap);
         }
 
@@ -420,7 +421,7 @@ public class ResolveUtil {
      */
     public static Map<String,Object> getAutoHeart(byte[] value) {
         Map<String,Object> maps=new HashMap<>();
-        maps.put(DeviceKey.DataType, BleConst.GetAutomaticHRMonitoring);
+        maps.put(DeviceKey.DataType, BleConst.GetAutomatic);
         maps.put(DeviceKey.End,true);
         Map<String,String>mapData=new HashMap<>();
         maps.put(DeviceKey.Data, mapData);
@@ -659,37 +660,52 @@ public class ResolveUtil {
      * @return
      */
     public static Map<String,Object> getSleepData(byte[] value) {
+        int length = value.length;
         Map<String,Object> maps=new HashMap<>();
         maps.put(DeviceKey.DataType, BleConst.GetDetailSleepData);
         maps.put(DeviceKey.End,false);
         List<Map<String, String>> list = new ArrayList<>();
         maps.put(DeviceKey.Data, list);
-        int count = 34;
-        int length = value.length;
-        int size = length / count;
-        if (size == 0) {
-            maps.put(DeviceKey.End,true);
-            return maps;
-        }
-        for (int i = 0; i < size; i++) {
-            int flag = 1 + (i + 1) * count;
-            if (flag < length && value[flag] == (byte) 0xff) {
-                maps.put(DeviceKey.End,true);
-            }
+        if (value[value.length - 1] == (byte) 0xff)  maps.put(DeviceKey.End,true);;
+        if(130==length){//一分钟睡眠数据
             Map<String, String> hashMap = new HashMap<>();
-            String date ="20"+ByteToHexString(value[3 + i * 34]) + "."
-                    + ByteToHexString(value[4 + i * 34]) + "." + ByteToHexString(value[5 + i * 34]) + " "
-                    + ByteToHexString(value[6 + i * 34]) + ":" + ByteToHexString(value[7 + i * 34]) + ":" + ByteToHexString(value[8 + i * 34]);
+            String date = "20" + bcd2String(value[3]) + "-" + bcd2String(value[4]) + "-" + bcd2String(value[5]) + " "
+                    + bcd2String(value[6]) + ":" + bcd2String(value[7]) + ":" + bcd2String(value[8]);
             hashMap.put(DeviceKey.Date, date);
-            int sleepLength= getValue(value[9 + i * 34], 0) ;
-            StringBuffer stringBuffer = new StringBuffer();
+            int sleepLength = getValue(value[9], 0);
+            StringBuilder stringBuffer = new StringBuilder();
             for (int j = 0; j < sleepLength; j++) {
-                stringBuffer.append(String.valueOf(getValue(value[10 + j + i * 34], 0))).append(j == sleepLength ? "" : " ");
+                stringBuffer.append(getValue(value[10 + j], 0)).append(j == sleepLength ? "" : " ");
             }
             hashMap.put(DeviceKey.ArraySleep, stringBuffer.toString());
+            hashMap.put(DeviceKey.sleepUnitLength,"1");
             list.add(hashMap);
+        }else{
+            int count = 34;
+            int size = length / count;
+            if (size == 0) {
+                maps.put(DeviceKey.Data, list);
+                maps.put(DeviceKey.End,true);
+                return maps;
+            }
+            for (int i = 0; i < size; i++) {
+                Map<String, String> hashMap = new HashMap<>();
+                String date = "20" + bcd2String(value[3 + i * 34]) + "-"
+                        + bcd2String(value[4 + i * 34]) + "-" + bcd2String(value[5 + i * 34]) + " "
+                        + bcd2String(value[6 + i * 34]) + ":" + bcd2String(value[7 + i * 34]) + ":" + bcd2String(value[8 + i * 34]);
+                hashMap.put(DeviceKey.Date, date);
+                int sleepLength = getValue(value[9 + i * 34], 0);
+                StringBuilder stringBuffer = new StringBuilder();
+                try{
+                    for (int j = 0; j < sleepLength; j++) {
+                        stringBuffer.append(getValue(value[10 + j + i * 34], 0)).append(j == sleepLength ?"":" ");
+                    }
+                }catch (ArrayIndexOutOfBoundsException E){E.fillInStackTrace(); }
+                hashMap.put(DeviceKey.ArraySleep, stringBuffer.toString());
+                hashMap.put(DeviceKey.sleepUnitLength,"5");
+                list.add(hashMap);
+            }
         }
-
         return maps;
     }
 
@@ -811,7 +827,20 @@ public class ResolveUtil {
         }
         return maps;
     }
-
+    /**
+     * htv测试数据
+     *
+     * @param
+     * @return
+     */
+    public static Map<String,Object> DeleteHrv() {
+        Map<String,Object> maps=new HashMap<>();
+        maps.put(DeviceKey.DataType, BleConst.DeleteHrv);
+        maps.put(DeviceKey.End,true);
+        List<Map<String, String>> list = new ArrayList<>();
+        maps.put(DeviceKey.Data, list);
+        return maps;
+    }
     /**
      * htv测试数据
      *
@@ -1051,32 +1080,149 @@ public static Map<String,Object> getTempDataer(byte[] value) {
         return maps;
     }
 
- /*   public static Map<String,Object> Getecgdata(byte[] value) {
-        Map<String,Object> maps=new HashMap<>();
-        List<Map<String, String>> list = new ArrayList<>();
-        maps.put(DeviceKey.DataType, BleConst.ECGdata);
-        maps.put(DeviceKey.End,true);
-        maps.put(DeviceKey.Data, list);
+    //私有属性
+    private Databack databack = null;
+
+    public interface Databack {
+        void Endback(Map<String,Object> map);
+    }
+
+    //setter方法
+    public void setDataback(Databack databack1) {
+        this.databack = databack1;
+    }
+
+  protected static List<Integer> ecgdata=new ArrayList<>();;
+  protected static int size=0;
+  protected static int count=0;
+  protected static  Map<String,Object> maps=new HashMap<>();
+  protected static  List<Map<String, String>> list = new ArrayList<>();
+    public static void Getecgdata(byte[] value,Databack databack) {
+        if (value[value.length - 1] == (byte) 0x71) {
+            maps.put(DeviceKey.DataType, BleConst.DeleteECGdata);
+            maps.put(DeviceKey.End,true);
+           if(null!=databack){databack.Endback(maps);}
+        }else if(3==value.length&&value[value.length - 1] == (byte) 0xff){
+            if(read){
+                Map<String, String> hashMap = new HashMap<>();
+                hashMap.put(DeviceKey.ECGValue, ecgdata.toString()+"");
+                list.add(hashMap);
+                maps.put(DeviceKey.End,true);
+                if(null!=databack){databack.Endback(maps);}
+            }else{
+                maps.put(DeviceKey.DataType, BleConst. ECGdata);
+                maps.put(DeviceKey.End,true);
+                if(null!=databack){databack.Endback(maps);}
+
+
+            }
+        }else{
+
+            int index =getValue(value[1 ], 0)+getValue(value[2], 1) ;
+            if(0==index){
+                ecgdata=new ArrayList<>();;
+                maps=new HashMap<>();
+                list = new ArrayList<>();
+                maps.put(DeviceKey.DataType, BleConst. ECGdata);
+                maps.put(DeviceKey.Data, list);
+                count=0;
+                size =getValue(value[9 ], 0)+getValue(value[10], 1) ;
+                String date = "20"+bcd2String(value[3]) + "."
+                        + bcd2String(value[4 ]) + "." + bcd2String(value[5]) + " "
+                        + bcd2String(value[6 ]) + ":" + bcd2String(value[7 ]) + ":" + bcd2String(value[8 ]);
+                Map<String, String> hashMap = new HashMap<>();
+                hashMap.put(DeviceKey.Date, date);
+                hashMap.put(DeviceKey.HRV, getValue(value[11], 0)+"");
+                hashMap.put(DeviceKey.HeartRate, getValue(value[12], 0)+"");
+                hashMap.put(DeviceKey.ECGMoodValue, getValue(value[12], 0)+"");
+                byte[] bs = new byte[value.length-14];
+                System.arraycopy(value, 14, bs, 0, bs.length);
+                for (int i=0;i<bs.length/2;i++){
+                    int valueddd = i*2;
+                    int ecg = getValue(bs[valueddd], 0) + getValue(bs[valueddd+1], 1);
+                    ecgdata.add(ecg);
+                    count++;
+                }
+                //maps.put(DeviceKey.End,false);
+               // hashMap.put(DeviceKey.ECGValue, ecgdata.toString()+"");
+                list.add(hashMap);
+
+            }else{
+
+                byte[] bs = new byte[value.length-3];
+                System.arraycopy(value, 3, bs, 0, bs.length);
+                for (int i=0;i<bs.length/2;i++){
+                    int valueddd = i*2;
+                    int ecg = getValue(bs[valueddd], 0) + getValue(bs[valueddd+1], 1);
+                    ecgdata.add(ecg);
+                    count++;
+                }
+                Log.e("count",count+"***"+size);
+               /* if(size==count){
+                    Map<String, String> hashMap = new HashMap<>();
+                    hashMap.put(DeviceKey.ECGValue, ecgdata.toString()+"");
+                    list.add(hashMap);
+                    maps.put(DeviceKey.End,true);
+                    if(null!=databack){databack.Endback(maps);}
+                }*/
+
+            }
+        }
+
+    }
+
+
+
+
+    public static Map<String, Object> getEcgHistoryData(byte[] value) {
+            Map<String,Object> maps=new HashMap<>();
+           Map<String, String> list = new HashMap<>();
+            maps.put(DeviceKey.DataType, BleConst.ECGdata);
+            maps.put(DeviceKey.End,false);
+            maps.put(DeviceKey.Data, list);
+
+        int length = value.length;
+        if (length== 3||(value[length - 3] == (byte) 0x71 && value[length - 2] == (byte) 0xff && value[length - 1] == (byte) 0xff)) {
+            maps.put(DeviceKey.End,true);
+            return maps;
+        }
+        int id = getValue(value[1], 0) + getValue(value[2], 1);
+        int offset = 3;
         Map<String, String> hashMap = new HashMap<>();
-        int index =getValue(value[1 ], 0)+getValue(value[2], 1) ;
-        if(0==index){
-            String date = "20"+bcd2String(value[3]) + "."
-                    + bcd2String(value[4 ]) + "." + bcd2String(value[5]) + " "
-                    + bcd2String(value[6 ]) + ":" + bcd2String(value[7 ]) + ":" + bcd2String(value[8 ]);
-            hashMap.put(DeviceKey.Date, date);
-        }
+        if (id == 0) {//第一条
+            String date = "20"+bcd2String(value[3]) + "-"
+                    + bcd2String(value[4]) + "-" + bcd2String(value[5]) + " "
+                    + bcd2String(value[6]) + ":" + bcd2String(value[7]) + ":" + bcd2String(value[8]);
+            String hrv = String.valueOf(getValue(value[11], 0));
+            String heart = String.valueOf(getValue(value[12], 0));
+            String moodValue = String.valueOf(getValue(value[13], 0));
+            list.put(DeviceKey.Date, date);
+            list.put(DeviceKey.HRV,hrv);
+            list.put(DeviceKey.HeartRate,heart);
+            list.put(DeviceKey.ECGMoodValue, moodValue);
+           /* list.add(hashMap);*/
+            offset = 27;
 
-        int size =getValue(value[9 ], 0)+getValue(value[10], 1) ;
-        hashMap.put(DeviceKey.Size, size+"");
-        NumberFormat numberFormat=getNumberFormat(1);
-        for (int i = 0; i < size; i++) {
-            int  tempValue = getValue(value[9 ], 0)+getValue(value[10 + i * count], 1);
-            hashMap.put(DeviceKey.temperature, numberFormat.format(tempValue*0.1f));
-            list.add(hashMap);
         }
+        byte[] tempValue = new byte[length - offset];
+        System.arraycopy(value, offset, tempValue, 0, tempValue.length);
+        String ecgData = getEcgDataString(tempValue);
+        list.put(DeviceKey.ECGValue, ecgData);
+        /*list.add(hashMap);*/
         return maps;
-    }*/
+    }
 
+
+    protected static String getEcgDataString(byte[] value) {
+        StringBuffer stringBuffer = new StringBuffer();
+        int length = value.length / 2 - 1;
+        for (int i = 0; i < length; i++) {
+            int ecgValue = getValue(value[i * 2 + 1], 1) + ResolveUtil.getValue(value[i * 2 + 2], 0);
+            if (ecgValue >= 32768) ecgValue = ecgValue - 65536;
+            stringBuffer.append(ecgValue).append(",");
+        }
+        return stringBuffer.toString();
+    }
 
 
     public static Map<String,Object> getExerciseData(byte[] value) {
@@ -1136,7 +1282,7 @@ public static Map<String,Object> getTempDataer(byte[] value) {
 
     public static Map<String,Object> getActivityExerciseData(byte[] value) {
         Map<String,Object> maps=new HashMap<>();
-        maps.put(DeviceKey.DataType, BleConst.EnterActivityMode);
+        maps.put(DeviceKey.DataType, BleConst.SportData);
         maps.put(DeviceKey.End,true);
 
         Map<String, String> map = new HashMap<>();
@@ -1228,14 +1374,14 @@ public static Map<String,Object> getTempDataer(byte[] value) {
         int index = ResolveUtil.getValue(value[1], 0);
         maps.put(DeviceKey.EcgStatus, index);
         if(3==index){//有数据
-            int HeartRate = ResolveUtil.getValue(value[5], 0);
-            int VascularAging = ResolveUtil.getValue(value[4], 0);
-            int HR = ResolveUtil.getValue(value[3], 0);
-            int  Fatiguedegree= ResolveUtil.getValue(value[6], 0);
-            int HighPressure = ResolveUtil.getValue(value[7], 0);
-            int LowPressure = ResolveUtil.getValue(value[8], 0);
-            int ECGMoodValue = ResolveUtil.getValue(value[9], 0);
-            int ECGBreathValue = ResolveUtil.getValue(value[10], 0);
+            int HR = ResolveUtil.getValue(value[2], 0);
+            int VascularAging = ResolveUtil.getValue(value[3], 0);
+            int HeartRate = ResolveUtil.getValue(value[4], 0);
+            int  Fatiguedegree= ResolveUtil.getValue(value[5], 0);
+            int HighPressure = ResolveUtil.getValue(value[6], 0);
+            int LowPressure = ResolveUtil.getValue(value[7], 0);
+            int ECGMoodValue = ResolveUtil.getValue(value[8], 0);
+            int ECGBreathValue = ResolveUtil.getValue(value[9], 0);
             maps.put(DeviceKey.HeartRate, HeartRate);
             maps.put(DeviceKey.VascularAging, VascularAging);
             maps.put(DeviceKey.HRV, HR);
@@ -1244,9 +1390,9 @@ public static Map<String,Object> getTempDataer(byte[] value) {
             maps.put(DeviceKey.LowPressure, LowPressure);
             maps.put(DeviceKey.ECGMoodValue, ECGMoodValue);
             maps.put(DeviceKey.ECGBreathValue, ECGBreathValue);
-            String date ="20"+ByteToHexString(value[11]) + "."+
-                    ByteToHexString(value[12]) + "." + ByteToHexString(value[13]) + " "+
-                    ByteToHexString(value[14]) + ":" + ByteToHexString(value[15]) + ":" + ByteToHexString(value[16]);
+            String date ="20"+ByteToHexString(value[10]) + "."+
+                    ByteToHexString(value[11]) + "." + ByteToHexString(value[12]) + " "+
+                    ByteToHexString(value[13]) + ":" + ByteToHexString(value[14]) + ":" + ByteToHexString(value[15]);
             maps.put(DeviceKey.Date,date);
         }
         return maps;
@@ -1441,5 +1587,41 @@ public static Map<String,Object> getTempDataer(byte[] value) {
         mmp.put(DeviceKey.Data, list.toString());
 
         return mmp;
+    }
+
+
+    static double[] B_HR = new double[]{
+            0.012493658738073,
+            0,
+            -0.024987317476146,
+            0,
+            0.012493658738073
+    };
+    static double[] A_HR = new double[]{
+            1,
+            -3.658469528008591,
+            5.026987876570873,
+            -3.078346646055655,
+            0.709828779797188
+    };
+    static double[] inPut = new double[]{0, 0, 0, 0, 0};
+    static double[] outPut = new double[]{0, 0, 0, 0, 0};
+
+    public static double filterEcgData(double data) {
+        inPut[4] = data * 18.3 / 128 + 0.06;
+        outPut[4] = B_HR[0] * inPut[4] +
+                B_HR[1] * inPut[3] +
+                B_HR[2] * inPut[2] +
+                B_HR[3] * inPut[1] +
+                B_HR[4] * inPut[0] -
+                A_HR[1] * outPut[3] -
+                A_HR[2] * outPut[2] -
+                A_HR[3] * outPut[1] -
+                A_HR[4] * outPut[0];
+        for (int i = 0; i < 4; i++) {
+            inPut[i] = inPut[i + 1];
+            outPut[i] = outPut[i + 1];
+        }
+        return outPut[4];
     }
 }

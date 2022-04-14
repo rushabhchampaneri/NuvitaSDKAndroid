@@ -9,6 +9,7 @@ import com.jstyle.blesdk2025.constant.BleConst;
 import com.jstyle.blesdk2025.constant.DeviceConst;
 import com.jstyle.blesdk2025.constant.DeviceKey;
 
+import com.jstyle.blesdk2025.model.AutoMode;
 import com.jstyle.blesdk2025.model.MyAutomaticHRMonitoring;
 import com.jstyle.blesdk2025.model.Clock;
 import com.jstyle.blesdk2025.model.MyDeviceInfo;
@@ -28,7 +29,7 @@ import java.util.Map;
 import static com.jstyle.blesdk2025.Util.ResolveUtil.bcd2String;
 import static com.jstyle.blesdk2025.Util.ResolveUtil.getFloat;
 import static com.jstyle.blesdk2025.Util.ResolveUtil.getValue;
-import static com.jstyle.blesdk2025.constant.BleConst.DeviceSendDataToAPP;
+
 
 /**
  * Created by Administrator on 2018/4/9.
@@ -57,32 +58,9 @@ public class BleSDK {
         crcValue(value);
         return value;
     }
-    /**
-     * 设置温度单位
-     *
-     * @param unit
-     * @return
-     */
-    public static byte[] SetTempUnit(byte unit) {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Set_DeviceInfo;
-        value[12] = unit;
-        crcValue(value);
-        return value;
-    }
 
-    /**
-     * 获得温度修正值
-     *
-     * @return
-     */
-    public static byte[] GetTemperatureCorrectionValue() {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Set_TemperatureCorrection;
-        value[1] = 0;
-        crcValue(value);
-        return value;
-    }
+
+
 
 
 
@@ -175,20 +153,6 @@ public class BleSDK {
     }
 
 
-    public static byte[] setWorkOutReminder(SportPeriod activityAlarm) {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Set_WorkOutReminder;
-        value[1] = ResolveUtil.getTimeValue(activityAlarm.getStartHour());
-        value[2] = ResolveUtil.getTimeValue(activityAlarm.getStartMinute());
-        value[3]= (byte) activityAlarm.getDays();//天数
-        value[4] = (byte) activityAlarm.getWeek();
-        value[5] = (byte) (activityAlarm.isEnable()?1:0);
-        int min=activityAlarm.getIntervalTime();
-        value[6] = (byte) ((min) & 0xff);
-        value[7] = (byte) ((min >> 8) & 0xff);
-        crcValue(value);
-        return value;
-    }
 
     public static byte[] getWorkOutReminder() {
         byte[] value = new byte[16];
@@ -199,7 +163,7 @@ public class BleSDK {
 
 
 
-    public static void DataParsingWithData(byte[] value, DataListener2025 dataListener) {
+    public static void DataParsingWithData(byte[] value, final DataListener2025 dataListener) {
         Map<String, String> map = new HashMap<>();
         switch (value[0]) {
             case DeviceConst.CMD_Set_Goal:
@@ -221,8 +185,8 @@ public class BleSDK {
                     dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.SetDialinterface));
                 }
                 break;
-            case DeviceConst.CMD_Set_AutoHeart:
-                dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.SetAutomaticHRMonitoring));
+            case DeviceConst.CMD_Set_Auto:
+                dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.SetAutomatic));
                 break;
             case DeviceConst.CMD_Set_ActivityAlarm:
                 dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.SetSedentaryReminder));
@@ -231,7 +195,13 @@ public class BleSDK {
                dataListener.dataCallback(ResolveUtil.setMacSuccessful());
                break;
             case DeviceConst.CMD_Start_EXERCISE:
-                dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.EnterActivityMode));
+                Map<String, Object> mapEXERCISE = new HashMap<>();
+                mapEXERCISE.put(DeviceKey.DataType, BleConst.EnterActivityMode);
+                mapEXERCISE.put(DeviceKey.End, true);
+                Map<String, String> mapsx = new HashMap<>();
+                mapsx.put(DeviceKey.enterActivityModeSuccess, ResolveUtil.getValue(value[1], 0) + "");
+                mapEXERCISE.put(DeviceKey.Data, mapsx);
+                dataListener.dataCallback(mapEXERCISE);
                 break;
             case DeviceConst.CMD_Set_TemperatureCorrection:
                 if (value[2] != 0 && value[3] != 0) {
@@ -247,7 +217,12 @@ public class BleSDK {
                 break;
 
             case DeviceConst.CMD_Get_SPORTData:
-                dataListener.dataCallback(ResolveUtil.getExerciseData(value));
+                if(GetActivityModeDataWithMode){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful( BleConst.Delete_ActivityModeData));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.getExerciseData(value));
+                }
+
                 break;
             case DeviceConst.CMD_GET_TIME:
                 dataListener.dataCallback(ResolveUtil.getDeviceTime(value));
@@ -278,7 +253,7 @@ public class BleSDK {
             case DeviceConst.CMD_Get_Name:
                 dataListener.dataCallback(ResolveUtil.getDeviceName(value));
                 break;
-            case DeviceConst.CMD_Get_AutoHeart:
+            case DeviceConst.CMD_Get_Auto:
                 dataListener.dataCallback(ResolveUtil.getAutoHeart(value));
                 break;
             case DeviceConst.CMD_Reset:
@@ -294,7 +269,12 @@ public class BleSDK {
                 dataListener.dataCallback(ResolveUtil.getActivityAlarm(value));
                 break;
             case DeviceConst.CMD_Get_TotalData:
-                dataListener.dataCallback(ResolveUtil.getTotalStepData(value));
+                if(GetTotalActivityDataWithMode){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.Delete_GetTotalActivityData));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.getTotalStepData(value));
+                }
+
                 break;
             case DeviceConst.CMD_Get_DetailData:
                 dataListener.dataCallback(ResolveUtil.getDetailData(value));
@@ -303,16 +283,35 @@ public class BleSDK {
                 dataListener.dataCallback(ResolveUtil.getSleepData(value));
                 break;
             case DeviceConst.CMD_Get_HeartData:
-                dataListener.dataCallback(ResolveUtil.getHeartData(value));
+                if(GetDynamicHRWithMode){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.Delete_GetDynamicHR));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.getHeartData(value));
+                }
+
                 break;
             case DeviceConst.CMD_Get_OnceHeartData:
-                dataListener.dataCallback(ResolveUtil.getOnceHeartData(value));
+                if(GetStaticHRWithMode){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.Delete_GetStaticHR));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.getOnceHeartData(value));
+                }
+
                 break;
             case DeviceConst.CMD_Get_HrvTestData:
-                dataListener.dataCallback(ResolveUtil.getHrvTestData(value));
+                if(readhrv){
+                    dataListener.dataCallback(ResolveUtil.getHrvTestData(value));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.DeleteHrv());
+                }
                 break;
             case DeviceConst.CMD_Get_Clock:
-                dataListener.dataCallback(ResolveUtil.getClockData(value));
+                if(GetAlarmClock){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.Delete_AlarmClock));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.getClockData(value));
+                }
+
                 break;
             case DeviceConst.CMD_Set_Clock:
                 dataListener.dataCallback(ResolveUtil.updateClockSuccessful(value));
@@ -320,47 +319,65 @@ public class BleSDK {
             case DeviceConst.CMD_Set_HeartbeatPackets:
                 Map<String,Object> maps=new HashMap<>();
                 Map<String, String> mapb = new HashMap<>();
-                mapb.put("Type", value[1] == 0 ?"Manual":"automatic");
+                mapb.put(DeviceKey.Type, value[1] == 0 ?DeviceKey.Manual:DeviceKey.automatic);
                 maps.put(DeviceKey.Data, mapb);
                 maps.put(DeviceKey.DataType, BleConst.HeartBeatpacket);
                 maps.put(DeviceKey.End, true);
                 dataListener.dataCallback(maps);
                 break;
+
             case DeviceConst.Enter_photo_modeback:
                 Map<String,Object> mapdd=new HashMap<>();
                 Map<String, String> mapbb = new HashMap<>();
                 switch (value[1]){
                     case 1:
-                        mapbb.put("type", value[2]==0?"0":"1");
+                        mapbb.put(DeviceKey.type, value[2]==0?DeviceKey.HangUp:DeviceKey.Telephone);
                         break;
                     case 2:
-                        mapbb.put("type", "2");
+                        if (value[1] == 2) {
+                            mapbb.put(DeviceKey.type, DeviceKey.Photograph);
+                        } else {
+                            mapbb.put(DeviceKey.type, DeviceKey.CanclePhotograph);
+                        }
                         break;
                     case 3:
                         switch (value[2]){
+                            case 0:
+                                mapbb.put(DeviceKey.type,DeviceKey.Suspend);
+                                break;
                             case 1:
-                                mapbb.put("type", "3");
+                                mapbb.put(DeviceKey.type, DeviceKey.Play);
                                 break;
                             case 2:
-                                mapbb.put("type", "4");
+                                mapbb.put(DeviceKey.type, DeviceKey.LastSong);
                                 break;
                             case 3:
-                                mapbb.put("type", "5");
+                                mapbb.put(DeviceKey.type, DeviceKey.NextSong);
                                 break;
                             case 4:
-                                mapbb.put("type", "6");
+                                mapbb.put(DeviceKey.type, DeviceKey.VolumeReduction);
                                 break;
                             case 5:
-                                mapbb.put("type", "7");
+                                mapbb.put(DeviceKey.type, DeviceKey.VolumeUp);
                                 break;
                         }
                         break;
                     case 4:
-                        mapbb.put("type", "8");
+                        switch (value[2]) {
+                            case 1:
+                                mapbb.put(DeviceKey.type, DeviceKey.FindYourPhone);
+                                break;
+                            case 2:
+                                map.put(DeviceKey.type, DeviceKey.Cancle_FindPhone);
+                                break;
+                        }
+                        break;
+                    case ((byte) 0XFE):
+                        mapbb.put(DeviceKey.type, DeviceKey.SOS);
                         break;
                 }
                 mapdd.put(DeviceKey.Data, mapbb);
-                mapdd.put(DeviceKey.DataType, DeviceSendDataToAPP);
+                mapdd.put(DeviceKey.DataType, BleConst.DeviceSendDataToAPP);
                 mapdd.put(DeviceKey.End, true);
                 dataListener.dataCallback(mapdd);
                 break;
@@ -368,15 +385,16 @@ public class BleSDK {
                 Map<String,Object> aaaa=new HashMap<>();
                 aaaa.put(DeviceKey.DataType, BleConst. BackHomeView);
                 aaaa.put(DeviceKey.End, true);
+                aaaa.put(DeviceKey.Data,new HashMap<>());
                 dataListener.dataCallback(aaaa);
                 break;
             case DeviceConst.CMD_ECGQuality:
                 Map<String,Object> bn=new HashMap<>();
                 Map<String, String> ccc = new HashMap<>();
-                ccc.put("heartValue",getValue(value[1], 0)+"");
-                ccc.put("hrvValue", getValue(value[2], 0)+"");
-                ccc.put("Quality", getValue(value[3], 0)+"");
-                bn.put(DeviceKey.DataType,BleConst.EcgppG);
+                ccc.put(DeviceKey.heartValue,getValue(value[1], 0)+"");
+                ccc.put(DeviceKey.hrvValue, getValue(value[2], 0)+"");
+                ccc.put(DeviceKey.Quality, getValue(value[3], 0)+"");
+                bn.put(DeviceKey.DataType,BleConst. EcgppG);
                 bn.put(DeviceKey.End, true);
                 bn.put(DeviceKey.Data, ccc);
                 dataListener.dataCallback(bn);
@@ -398,19 +416,22 @@ public class BleSDK {
                     Map<String,Object> ffff=new HashMap<>();
                     ffff.put(DeviceKey.DataType, BleConst.ECG);
                     ffff.put(DeviceKey.End, true);
+                    ffff.put(DeviceKey.Data,new HashMap<>());
                     dataListener.dataCallback(ffff);
                 }
                 break;
             case DeviceConst.Closeecg:
                 Map<String,Object> ffff=new HashMap<>();
-                ffff.put(DeviceKey.DataType, BleConst.CloseECG);
+                ffff.put(DeviceKey.DataType, BleConst.CloseECGPPG);
                 ffff.put(DeviceKey.End, true);
+                ffff.put(DeviceKey.Data,new HashMap<>());
                 dataListener.dataCallback(ffff);
                 break;
             case DeviceConst.Weather:
                 Map<String,Object> fffff=new HashMap<>();
                 fffff.put(DeviceKey.DataType, BleConst.Weather);
                 fffff.put(DeviceKey.End, true);
+                fffff.put(DeviceKey.Data,new HashMap<>());
                 dataListener.dataCallback(fffff);
                 break;
             case DeviceConst.Braceletdial:
@@ -418,11 +439,12 @@ public class BleSDK {
                     Map<String,Object> lll=new HashMap<>();
                     lll.put(DeviceKey.DataType, BleConst.Braceletdial);
                     lll.put(DeviceKey.End, true);
+                    lll.put(DeviceKey.Data,new HashMap<>());
                     dataListener.dataCallback(lll);
                 }else{
                     Map<String,Object> lll=new HashMap<>();
                     Map<String, String> lm = new HashMap<>();
-                    lm.put("index",value[1]+"");
+                    lm.put(DeviceKey.index,value[1]+"");
                     lll.put(DeviceKey.DataType, BleConst.Braceletdialok);
                     lll.put(DeviceKey.End, true);
                     lll.put(DeviceKey.Data, lm);
@@ -434,6 +456,7 @@ public class BleSDK {
                 Map<String,Object> baba=new HashMap<>();
                 baba.put(DeviceKey.DataType, BleConst.SportMode);
                 baba.put(DeviceKey.End, true);
+                baba.put(DeviceKey.Data,new HashMap<>());
                 dataListener.dataCallback(baba);
                 break;
             case DeviceConst.GetSportMode:
@@ -449,37 +472,75 @@ public class BleSDK {
                 nnn.put(DeviceKey.Data, workOutType.toString());
                 dataListener.dataCallback(nnn);
                 break;
-            case DeviceConst.CMD_Set_WorkOutReminder:
-                Map<String,Object> vv=new HashMap<>();
-                vv.put(DeviceKey.DataType, BleConst.CMD_Set_WorkOutReminder);
-                vv.put(DeviceKey.End, true);
-                dataListener.dataCallback(vv);
-                break;
-       /*     case DeviceConst.CMD_Get_WorkOutReminder:
-            String[] workOutReminder = ResolveUtil.getWorkOutReminder(value);
-            map.put("StartHour",workOutReminder[0]);
-            map.put("StartMinter",workOutReminder[1]);
-            map.put("WorkOutDay",workOutReminder[2]);
-            map.put("SportWeekEnable",workOutReminder[3]);
-            map.put("WorkOutReminderEnable",workOutReminder[4]);
-            map.put("WorkOutReminderTimer",workOutReminder[5]);
-                Map<String,Object> vvV=new HashMap<>();
-                vvV.put(DeviceKey.DataType, BleConst.CMD_Get_WorkOutReminder);
-                vvV.put(DeviceKey.End, true);
-                vvV.put(DeviceKey.Data,map);
-                dataListener.dataCallback(vvV);
-                break;*/
-/*            case DeviceConst.ReadSerialNumber:
-                Map<String,Object> jjjjg=new HashMap<>();
-                jjjjg.put(DeviceKey.DataType, BleConst.ReadSerialNumber);
-                jjjjg.put(DeviceKey.End, true);
-                StringBuilder sb = new StringBuilder();
-                for (int i = 1; i < 8; i++) {
-                    sb.append(String.format("%02X", value[i]));
+
+            case DeviceConst.MeasurementWithType:
+                if(StartDeviceMeasurementWithType){
+                    Map<String,Object> vv=new HashMap<>();
+                    switch (value[1]){
+                        case 1://hrv
+                            vv.put(DeviceKey.DataType, BleConst.MeasurementHrvCallback);
+                            vv.put(DeviceKey.End, true);
+                            Map<String, String> lm = new HashMap<>();
+                            lm.put(DeviceKey.HeartRate,getValue(value[2], 0)+"");
+                            lm.put(DeviceKey.Blood_oxygen,getValue(value[3], 0)+"");
+                            lm.put(DeviceKey.HRV,getValue(value[4], 0)+"");
+                            lm.put(DeviceKey.Stress,getValue(value[5], 0)+"");
+                            lm.put(DeviceKey.HighPressure,getValue(value[6], 0)+"");
+                            lm.put(DeviceKey.LowPressure,getValue(value[7], 0)+"");
+                            vv.put(DeviceKey.Data,lm);
+                            dataListener.dataCallback(vv);
+                            break;
+                        case 2://heart
+                            vv.put(DeviceKey.DataType, BleConst.MeasurementHeartCallback);
+                            vv.put(DeviceKey.End, true);
+                            Map<String, String> lmB = new HashMap<>();
+                            lmB.put(DeviceKey.HeartRate,getValue(value[2], 0)+"");
+                            lmB.put(DeviceKey.Blood_oxygen,getValue(value[3], 0)+"");
+                            lmB.put(DeviceKey.HRV,getValue(value[4], 0)+"");
+                            lmB.put(DeviceKey.Stress,getValue(value[5], 0)+"");
+                            lmB.put(DeviceKey.HighPressure,getValue(value[6], 0)+"");
+                            lmB.put(DeviceKey.LowPressure,getValue(value[7], 0)+"");
+                            vv.put(DeviceKey.Data,lmB);
+                           dataListener.dataCallback(vv);
+                            break;
+                        case 3://0xy
+                            vv.put(DeviceKey.DataType, BleConst.MeasurementOxygenCallback);
+                            vv.put(DeviceKey.End, true);
+                            Map<String, String> lmC = new HashMap<>();
+                            lmC.put(DeviceKey.HeartRate,getValue(value[2], 0)+"");
+                            lmC.put(DeviceKey.Blood_oxygen,getValue(value[3], 0)+"");
+                            lmC.put(DeviceKey.HRV,getValue(value[4], 0)+"");
+                            lmC.put(DeviceKey.Stress,getValue(value[5], 0)+"");
+                            lmC.put(DeviceKey.HighPressure,getValue(value[6], 0)+"");
+                            lmC.put(DeviceKey.LowPressure,getValue(value[7], 0)+"");
+                            vv.put(DeviceKey.Data,lmC);
+                            dataListener.dataCallback(vv);
+                            break;
+                    }
+                }else{
+                    Map<String,Object> vv=new HashMap<>();
+                    switch (value[1]){
+                        case 1://hrv
+                            vv.put(DeviceKey.DataType, BleConst.StopMeasurementHrvCallback);
+                            vv.put(DeviceKey.End, true);
+                            vv.put(DeviceKey.Data,new HashMap<>());
+                            dataListener.dataCallback(vv);
+                            break;
+                        case 2://heart
+                            vv.put(DeviceKey.DataType, BleConst.StopMeasurementHeartCallback);
+                            vv.put(DeviceKey.End, true);
+                            vv.put(DeviceKey.Data,new HashMap<>());
+                            dataListener.dataCallback(vv);
+                            break;
+                        case 3://0xy
+                            vv.put(DeviceKey.DataType, BleConst.StopMeasurementOxygenCallback);
+                            vv.put(DeviceKey.End, true);
+                            vv.put(DeviceKey.Data,new HashMap<>());
+                            dataListener.dataCallback(vv);
+                            break;
+                    }
                 }
-                jjjjg.put(DeviceKey.Data,sb.toString());
-                dataListener.dataCallback(jjjjg);
-                break;*/
+                break;
             case DeviceConst.GPSControlCommand:
                 Map<String,Object> GPSControlCommand=new HashMap<>();
                 GPSControlCommand.put(DeviceKey.DataType, BleConst.GPSControlCommand);
@@ -515,10 +576,16 @@ public class BleSDK {
                 Map<String,Object> language=new HashMap<>();
                 language.put(DeviceKey.DataType, BleConst.Clear_Bracelet_data);
                 language.put(DeviceKey.End, true);
+                language.put(DeviceKey.Data,new HashMap<>());
                 dataListener.dataCallback(language);
                 break;
             case DeviceConst.CMD_Get_Blood_oxygen:
-                dataListener.dataCallback(ResolveUtil.getBloodoxygen(value));
+                if(GetBloodOxygen){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.Delete_Blood_oxygen));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.getBloodoxygen(value));
+                }
+
                 break;
             case  DeviceConst.CMD_SET_SOCIAL:
                 if(isSettingSocial){
@@ -530,9 +597,9 @@ public class BleSDK {
                     Map<String, String> mapll = new HashMap<>();
                     int interval = ResolveUtil.getValue(value[2], 0);
                     int duration = ResolveUtil.getValue(value[3], 0);
-                    mapll.put("scanInterval", interval+"");
-                    mapll.put("scanTime", duration+"");
-                    mapll.put("signalStrength",value[4]+"");
+                    mapll.put(DeviceKey.scanInterval, interval+"");
+                    mapll.put(DeviceKey.scanTime, duration+"");
+                    mapll.put(DeviceKey.signalStrength,value[4]+"");
                     mapsa.put(DeviceKey.Data, mapll);
                     dataListener.dataCallback(mapsa);
                 }
@@ -541,10 +608,20 @@ public class BleSDK {
                     dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.Sos));
                 break;
             case  DeviceConst.Temperature_history:
-                dataListener.dataCallback(ResolveUtil.getTempData(value));
+                if(GetTemperature_historyDataWithMode){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.deleteGetTemperature_historyDataWithMode));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.getTempData(value));
+                }
                 break;
             case  DeviceConst.GetAxillaryTemperatureDataWithMode:
-                dataListener.dataCallback(ResolveUtil.getTempDataer(value));
+                if(GetAxillaryTemperatureDataWithMode){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.deleteGetAxillaryTemperatureDataWithMode));
+
+                }else{
+                    dataListener.dataCallback(ResolveUtil.getTempDataer(value));
+                }
+
                 break;
             case  DeviceConst. Get3D:
                 dataListener.dataCallback(ResolveUtil.get3d(value));
@@ -552,13 +629,43 @@ public class BleSDK {
             case  DeviceConst. PPG:
                 dataListener.dataCallback(ResolveUtil.getPPG(value));
                 break;
-            case DeviceConst.GetAutomaticSpo2Monitoring:
-                dataListener.dataCallback(ResolveUtil.GetAutomaticSpo2Monitoring(value));
-                break;
-          /* case  DeviceConst. GetECGwaveform:
-               dataListener.dataCallback(ResolveUtil.Getecgdata(value));
-                break;*/
+            case  DeviceConst.Qrcode:
+                if(Qrcode){
+                    Map<String,Object> qr=new HashMap<>();
+                    qr.put(DeviceKey.DataType, BleConst.EnterQRcode);
+                    qr.put(DeviceKey.End, true);
+                    qr.put(DeviceKey.Data, new HashMap<>());
+                    dataListener.dataCallback(qr);
+                }else{
+                    if((byte) 0x80==value[1]||(byte)0x81==value[1]){
+                        Map<String,Object> qr=new HashMap<>();
+                        qr.put(DeviceKey.DataType, BleConst.QRcodebandBack);
+                        qr.put(DeviceKey.End, true);
+                        Map<String, String> mapll = new HashMap<>();
+                        mapll.put(DeviceKey.Band,((byte)0x81==value[1])?1+"":0+"");
+                        qr.put(DeviceKey.Data, mapll);
+                        dataListener.dataCallback(qr);
+                    }else{
+                        Map<String,Object> qr=new HashMap<>();
+                        qr.put(DeviceKey.DataType, BleConst.ExitQRcode);
+                        qr.put(DeviceKey.End, true);
+                        qr.put(DeviceKey.Data, new HashMap<>());
+                        dataListener.dataCallback(qr);
 
+                    }
+
+                }
+                break;
+            case DeviceConst.GetAutomaticSpo2Monitoring:
+                if(Obtain_The_data_of_manual_blood_oxygen_test){
+                    dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.Delete_Obtain_The_data_of_manual_blood_oxygen_test));
+                }else{
+                    dataListener.dataCallback(ResolveUtil.GetAutomaticSpo2Monitoring(value));
+                }
+                break;
+           case  DeviceConst. GetECGwaveform:
+               dataListener.dataCallback(ResolveUtil.getEcgHistoryData(value));
+                break;
             case DeviceConst.spo2:
                 if(issetting){
                     dataListener.dataCallback(ResolveUtil.setMethodSuccessful(BleConst.SetSpo2));
@@ -571,14 +678,11 @@ public class BleSDK {
     }
 
 
-    public static byte[] GetDetailSleepDataWithMode(int mode) {
+    public static byte[] GetDetailSleepDataWithMode(byte mode, String dateOfLastData) {
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_SleepData;
-        if(99==mode){
-            value[1] = (byte) 0x99;
-        }else{
-            value[1] = (byte) mode;
-        }
+        value[1] = mode;
+        insertDateValue(value, dateOfLastData);
         crcValue(value);
         return value;
     }
@@ -613,11 +717,6 @@ public class BleSDK {
         return value;
     }
 
-    public static byte[] setStepModel(StepModel stepModel) {
-        byte[] value = new byte[16];
-        //  value = stepModel.isStepState() ? RealTimeStep() : stopGo();
-        return value;
-    }
 
 
     /**
@@ -635,18 +734,6 @@ public class BleSDK {
     }
 
 
-    /**
-     * 停止实时计步
-     *
-     * @return
-     */
-    public static byte[] stopGo() {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Enable_Activity;
-        value[1] = 0;
-        crcValue(value);
-        return value;
-    }
 
 
 
@@ -746,15 +833,13 @@ public class BleSDK {
      *
      * @param
      * @return
+     *  * dateOfLastData "yyyy-MM-dd HH:mm:ss   or  yyyy.MM.dd HH:mm:ss"
      */
-    public static byte[] GetDetailActivityDataWithMode(int mode) {
+    public static byte[] GetDetailActivityDataWithMode(byte mode, String dateOfLastData) {
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_DetailData;
-        if(99==mode){
-            value[1] = (byte) 0x99;
-        }else{
-            value[1] = (byte) mode;
-        }
+        value[1] = (byte) mode;
+        insertDateValue(value,dateOfLastData);
         crcValue(value);
         return value;
     }
@@ -767,14 +852,13 @@ public class BleSDK {
      * @param
      * @return
      */
-    public static byte[] GetTemperature_historyDataWithMode(int mode) {
+    protected  static boolean GetTemperature_historyDataWithMode;
+    public static byte[] GetTemperature_historyDataWithMode(byte mode, String dateOfLastData) {
+        GetTemperature_historyDataWithMode=(byte)0x99==mode;
         byte[] value = new byte[16];
         value[0] = DeviceConst.Temperature_history;
-        if(99==mode){
-            value[1] = (byte) 0x99;
-        }else{
-            value[1] = (byte) mode;
-        }
+         value[1] = mode;
+        insertDateValue(value, dateOfLastData);
         crcValue(value);
         return value;
     }
@@ -788,21 +872,75 @@ public class BleSDK {
      * @param
      * @return
      */
-    public static byte[] GetAxillaryTemperatureDataWithMode(int mode) {
+    private static boolean GetAxillaryTemperatureDataWithMode;
+    public static byte[] GetAxillaryTemperatureDataWithMode(byte mode, String dateOfLastData) {
+        GetAxillaryTemperatureDataWithMode= (byte) 0x99 == mode;
         byte[] value = new byte[16];
         value[0] = DeviceConst.GetAxillaryTemperatureDataWithMode;
-        if(99==mode){
-            value[1] = (byte) 0x99;
-        }else if(0==mode){
-            value[1] = (byte) 0x00;
-        }else if(1==mode){
+        value[1] = mode;
+        insertDateValue(value, dateOfLastData);
+        crcValue(value);
+        return value;
+    }
+
+    public static byte[] SetAutomatic(boolean open, int time, AutoMode type) {
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.CMD_Set_Auto;
+        value[1] = open ? (byte) 0x02 : (byte) 0x00;
+        value[2] = (byte) 0x00;
+        value[3] = (byte) 0x00;
+        value[4] = (byte) 0x23;
+        value[5] = (byte) 0x59;
+        value[6] = (byte) 255;
+        value[7] = (byte) (time & 0xff);
+        value[8] = (byte) ((time >> 8) & 0xff);
+        if(null==type){
+            value[9] = (byte) 0x01;
+        }else{
+            switch (type){
+                case AutoHeartRate:
+                    value[9] = (byte) 0x01;
+                    break;
+                case AutoSpo2:
+                    value[9] = (byte) 0x02;
+                    break;
+                case AutoTemp:
+                    value[9] = (byte) 0x03;
+                    break;
+                case AutoHrv:
+                    value[9] = (byte) 0x04;
+                    break;
+            }
+        }
+
+        crcValue(value);
+        return value;
+    }
+    public static byte[] GetAutomatic(AutoMode type) {
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.CMD_Get_Auto;
+        if(null==type){
             value[1] = (byte) 0x01;
         }else{
-            value[1] = (byte) 0x02;
+            switch (type){
+                case AutoHeartRate:
+                    value[1] = (byte) 0x01;
+                    break;
+                case AutoSpo2:
+                    value[1] = (byte) 0x02;
+                    break;
+                case AutoTemp:
+                    value[1] = (byte) 0x03;
+                    break;
+                case AutoHrv:
+                    value[1] = (byte) 0x04;
+                    break;
+            }
         }
         crcValue(value);
         return value;
     }
+
 
 
     /**
@@ -813,44 +951,23 @@ public class BleSDK {
      *             动数据
      * @return
      */
-    public static byte[] GetTotalActivityDataWithMode(int mode) {
+  protected  static boolean GetTotalActivityDataWithMode;
+    public static byte[] GetTotalActivityDataWithMode(byte mode, String dateOfLastData) {
+        GetTotalActivityDataWithMode= (byte) 0x99 == mode;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_TotalData;
-        if(99==mode){
-            value[1] = (byte) 0x99;
-        }else if(0==mode){
-            value[1] = (byte) 0x00;
-        }else if(1==mode){
-            value[1] = (byte) 0x01;
-        }else{
-            value[1] = (byte) 0x02;
-        }
+        value[1] = mode;
+        insertDateValueNoH(value, dateOfLastData);
         crcValue(value);
         return value;
     }
 
-    public static byte[] enableEcgPPg(int level){
-        byte[] value = new byte[16];
-        value[0]=DeviceConst.Openecg;
-        value[1]= (byte) level;
-        crcValue(value);
-        return value;
-    }
+
 
 
    protected static boolean ecgopen=false;
-    public static byte[] enableEcg(boolean open) {
-        ecgopen=open;
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.Openecg;
-        value[1] = open?(byte)0x01:(byte)0x00 ;
-         crcValue(value);
-        return value;
-    }
-
-
-
-    public static byte[] enableEcgPPg(int level, int time) {
+    public static byte[] OpenECGPPG(int level, int time) {
+            ecgopen= 0 != level;
             byte[] value = new byte[16];
             value[0] = DeviceConst.Openecg;
             value[1] = (byte) level;
@@ -870,12 +987,6 @@ public class BleSDK {
     public static byte[] GetEcgPpgStatus(){
         byte[] value = new byte[16];
         value[0]=DeviceConst.GetEcgPpgStatus;
-        crcValue(value);
-        return value;
-    }
-    public static byte[] GetEcgData(){
-        byte[] value = new byte[16];
-        value[0]=DeviceConst.CMD_ECGQuality;
         crcValue(value);
         return value;
     }
@@ -913,10 +1024,12 @@ public class BleSDK {
      * @param
      * @return
      */
-    public static byte[] GetAlarmClock(int mode) {
+    protected static boolean GetAlarmClock;
+    public static byte[] GetAlarmClock(byte mode) {
+        GetAlarmClock= (byte) 0x99 == mode;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_Clock;
-        value[1] = (byte) mode;
+        value[1] = mode;
         crcValue(value);
         return value;
     }
@@ -1066,10 +1179,10 @@ public class BleSDK {
     /**
      * 设置距离单位
      *
-     * @param unit
      * @return
      */
     public static byte[] SetDistanceUnit(boolean km) {
+        isSetDialinterface=false;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Set_DeviceInfo;
         value[1] =  km?(byte)0x80:(byte)0x81;
@@ -1078,11 +1191,26 @@ public class BleSDK {
     }
 
     /**
+     * 设置时间模式
+     *
+     * @param unit12
+     * @return
+     */
+    public static byte[] SetTimeModeUnit(boolean unit12) {
+        isSetDialinterface=false;
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.CMD_Set_DeviceInfo;
+        value[2] = unit12?(byte)0x81:(byte)0x80;
+        crcValue(value);
+        return value;
+    }
+    /**
      * 抬手亮屏
      * @param enable
      * @return
      */
     public static byte[] setWristOnEnable(boolean enable) {
+        isSetDialinterface=false;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Set_DeviceInfo;
         value[3] = enable?WristOn_Enable:WristOn_DisEnable;
@@ -1096,6 +1224,7 @@ public class BleSDK {
      * @return
      */
     public static byte[] setTemperatureUnit(boolean Fahrenheit_degree) {
+        isSetDialinterface=false;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Set_DeviceInfo;
         value[4] = Fahrenheit_degree?WristOn_Enable:WristOn_DisEnable;
@@ -1108,6 +1237,7 @@ public class BleSDK {
      * @return
      */
     public static byte[] setLightMode(boolean LightMode) {
+        isSetDialinterface=false;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Set_DeviceInfo;
         value[5] = LightMode?WristOn_Enable:WristOn_DisEnable;
@@ -1115,6 +1245,38 @@ public class BleSDK {
         return value;
     }
 
+    public static byte[] disableAncs() {
+        isSetDialinterface=false;
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.CMD_Set_DeviceInfo;
+        value[6] = (byte) 0x80;
+        crcValue(value);
+        return value;
+    }
+
+
+
+    private  static final byte[] BrightnessLevel={(byte)0x8f, (byte)0x8d, (byte)0x8b,(byte)0x89, (byte)0x87, (byte)0x85};
+    public static byte[] SetBrightness(int level) {
+        isSetDialinterface=false;
+        if(level<0){level=0;}else if(level>5){level=5;}
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.CMD_Set_DeviceInfo;
+        value[11] = BrightnessLevel[level];
+        crcValue(value);
+        return value;
+    }
+
+
+    static boolean isSetDialinterface=false;
+    public static byte[] SetDialinterface(int index) {
+        isSetDialinterface=true;
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.CMD_Set_DeviceInfo;
+        value[12] =(byte)( 0x80+index);
+        crcValue(value);
+        return value;
+    }
 
 
     /**
@@ -1123,6 +1285,7 @@ public class BleSDK {
      * @return
      */
     public static byte[] setLauage(boolean chaina) {
+        isSetDialinterface=false;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Set_DeviceInfo;
         value[14] = chaina?WristOn_Enable:WristOn_DisEnable;
@@ -1130,16 +1293,25 @@ public class BleSDK {
         return value;
     }
 
-
-    /**
-     * 0-10 共计11个表盘
-     * @param id
-     * @return
-     */
-    public static byte[] DialSwitch(int  id) {
+    public static byte[] SetDeviceInfo(MyDeviceInfo deviceBaseParameter) {
+        isSetDialinterface=false;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Set_DeviceInfo;
-        value[12] = (byte) (0x80 + id);
+        value[1] = (byte) (deviceBaseParameter.isDistanceUnit() ? 0x81 : 0x80);
+        value[2] = (byte) (deviceBaseParameter.isIs12Hour() ? 0x81 : 0x80);
+        value[3] = (byte) (deviceBaseParameter.isBright_screen() ? 0x81 : 0x80);
+        value[4] = (byte) (!deviceBaseParameter.isTemperature_unit() ? 0x81 : 0x80);
+        value[5] = (byte) (deviceBaseParameter.isFahrenheit_or_centigrade() ? 0x81 : 0x80);
+        value[6] = (byte )0x80;
+        value[9] =(byte)  deviceBaseParameter.getBaseheart();
+        if(-1!=deviceBaseParameter.getScreenBrightness()){
+            if(deviceBaseParameter.getScreenBrightness()<0){deviceBaseParameter.setScreenBrightness(0);}else if(deviceBaseParameter.getScreenBrightness()>5){deviceBaseParameter.setScreenBrightness(5);}
+            value[11] = BrightnessLevel[deviceBaseParameter.getScreenBrightness()];
+        }
+        if(-1!=deviceBaseParameter.getDialinterface()){
+            value[12] =(byte) (0x80 + deviceBaseParameter.getDialinterface());
+        }
+        value[14] =(byte) (deviceBaseParameter.isChinese_English_switch() ? 0x81 : 0x80);
         crcValue(value);
         return value;
     }
@@ -1147,19 +1319,9 @@ public class BleSDK {
 
 
 
-    /**
-     * 设置时间模式
-     *
-     * @param unit12
-     * @return
-     */
-    public static byte[] SetTimeModeUnit(boolean unit12) {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Set_DeviceInfo;
-        value[2] = unit12?(byte)0x81:(byte)0x80;
-        crcValue(value);
-        return value;
-    }
+
+
+
 
 
 
@@ -1173,6 +1335,28 @@ public class BleSDK {
         crcValue(value);
         return value;
     }
+
+    /*
+     *  @method StartDeviceMeasurementWithType
+     *   @param dataType    The type of measurement that needs to be turned on
+     *   @param isOpen   When its value is YES, it means on, otherwise it means off
+     *  @discussion  Turn on device measurement
+     *
+     */
+    public static boolean StartDeviceMeasurementWithType=false;
+    public static byte[] StartDeviceMeasurementWithType(int dataType,boolean open) {
+        StartDeviceMeasurementWithType=open;
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.MeasurementWithType;
+        value[1]=(byte)dataType;
+        value[2] = open?(byte)0x01:(byte)0x00;
+        crcValue(value);
+        return value;
+    }
+
+
+
+
     /**
      */
     public static byte[] SendMusicname(String name) {
@@ -1188,20 +1372,23 @@ public class BleSDK {
 
 
     public static byte[] setWeather(WeatherData weatherData){
-        byte[]value=new byte[38];
-        value[0]= DeviceConst.Weather;
-        value[1]= (byte) weatherData.getWeatherId();
-        int tempNow=weatherData.getTempNow();
-        value[2]= (byte) (tempNow<0?1:0);
-        value[3]= (byte) (Math.abs(tempNow));
-        int tempLow=weatherData.getTempLow();
-        value[4]= (byte) (tempLow<0?1:0);
-        value[5]= (byte) (Math.abs(tempLow));
-        int tempHigh=weatherData.getTempHigh();
-        value[6]= (byte) (tempHigh<0?1:0);
-        value[7]= (byte) (Math.abs(tempHigh));
+        String name = weatherData.getCityName();
+        byte[] value = new byte[42];
+        value[0] = DeviceConst.Weather;
+        if(!TextUtils.isEmpty(name)){
+            value[1] = (byte) weatherData.getWeatherId();
+            int tempNow = weatherData.getTempNow();
+            value[2] = (byte) (tempNow );
+            int tempHigh = weatherData.getTempHigh();
+            value[3] = (byte) (tempHigh);
+            int templow = weatherData.getTempLow();
+            value[4] = (byte) (templow);
+            byte[] valueName = getInfoValue(name, 32);
+            value[7]= (byte) valueName.length;
+            System.arraycopy(valueName, 0, value, 8, valueName.length);
+            crcValue(value);
+        }
         return value;
-
     }
 
 
@@ -1226,18 +1413,13 @@ public class BleSDK {
         return value;
     }
 
-    public static byte[] GetHRVDataWithMode(int mode) {
+  private static  boolean readhrv=false;
+    public static byte[] GetHRVDataWithMode(byte mode, String dateOfLastData) {
+        readhrv=(byte) 0x99!=mode;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_HrvTestData;
-        if(99==mode){
-            value[1] = (byte) 0x99;
-        }else if(0==mode){
-            value[1] = (byte) 0x00;
-        }else if(1==mode){
-            value[1] = (byte) 0x01;
-        }else{
-            value[1] = (byte) 0x02;
-        }
+        value[1] = mode;
+        insertDateValue(value, dateOfLastData);
         crcValue(value);
         return value;
     }
@@ -1266,83 +1448,6 @@ public class BleSDK {
 
 
 
-   /* public static byte[] SetBaseHeartRate(int BaseHeartRate) {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Set_BaseHeartRateVale;
-        value[1] = (byte) BaseHeartRate;
-        crcValue(value);
-        return value;
-    }
-
-
-    public static byte[] GetBaseHeartRate() {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Get_BaseHeartRateVale;
-        crcValue(value);
-        return value;
-    }*/
-
-
-    public static byte[] SetAutomaticHRMonitoring(MyAutomaticHRMonitoring autoHeart) {
-        byte[] value = new byte[16];
-        int time = autoHeart.getTime();
-        value[0] = DeviceConst.CMD_Set_AutoHeart;
-        value[1] = (byte) autoHeart.getOpen();
-        value[2] = ResolveUtil.getTimeValue(autoHeart.getStartHour());
-        value[3] = ResolveUtil.getTimeValue(autoHeart.getStartMinute());
-        value[4] = ResolveUtil.getTimeValue(autoHeart.getEndHour());
-        value[5] = ResolveUtil.getTimeValue(autoHeart.getEndMinute());
-        value[6] = (byte) autoHeart.getWeek();
-        value[7] = (byte) (time & 0xff);
-        value[8] = (byte) ((time >> 8) & 0xff);
-        crcValue(value);
-        return value;
-    }
-
-
-    public static byte[] GetAutomaticHRMonitoring() {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Get_AutoHeart;
-        crcValue(value);
-        return value;
-    }
-    /*public static byte[] ReadSerialNumber() {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.ReadSerialNumber;
-        crcValue(value);
-        return value;
-    }*/
-
-
-
-
-
-
-   /* public static byte[] StartHeartRateMode() {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Enable_ActivityHeartRate;
-        value[1] = 1;
-        crcValue(value);
-        return value;
-    }
-
-
-    public static byte[] StopHeartRateMode() {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Enable_ActivityHeartRate;
-        value[1] = 0;
-        crcValue(value);
-        return value;
-    }
-
-
-    public static byte[] SetHeartRateDataMode(int DataMode) {
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Set_ActivityHeartRateMode;
-        value[1] = (byte) DataMode;
-        crcValue(value);
-        return value;
-    }*/
 
 
 
@@ -1355,10 +1460,12 @@ public class BleSDK {
      *             GPS数据
      * @return
      */
-    public static byte[] GetActivityModeDataWithMode(int mode) {
+    protected static boolean GetActivityModeDataWithMode;
+    public static byte[] GetActivityModeDataWithMode(byte mode) {
+        GetActivityModeDataWithMode=(byte)0x09==mode;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_SPORTData;
-        value[1] = (byte) mode;
+        value[1] =  mode;
         crcValue(value);
         return value;
     }
@@ -1374,25 +1481,36 @@ public class BleSDK {
     }
 
 
-    public static byte[] GetStaticHRWithMode(int mode) {
+    protected static boolean GetStaticHRWithMode;
+    public static byte[] GetStaticHRWithMode(byte mode, String dateOfLastData) {
+        GetStaticHRWithMode=(byte)0x99==mode;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_OnceHeartData;
-        value[1] = (byte) mode;
+        value[1] =  mode;
+        insertDateValue(value, dateOfLastData);
         crcValue(value);
         return value;
     }
 
-    public static byte[] GetDynamicHRWithMode(int Number) {
+
+    protected  static boolean GetDynamicHRWithMode;
+    public static byte[] GetDynamicHRWithMode(byte Number, String dateOfLastData) {
+        GetDynamicHRWithMode=(byte)0x99==Number;
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_HeartData;
         value[1] = (byte) Number;
+        insertDateValue(value, dateOfLastData);
         crcValue(value);
         return value;
     }
-    public static byte[] GetBloodOxygen(int Number) {
+
+    private static boolean GetBloodOxygen;
+    public static byte[] GetBloodOxygen(byte Number,String dateOfLastData) {
+        GetBloodOxygen=((byte) 0x99 == Number);
         byte[] value = new byte[16];
         value[0] = DeviceConst.CMD_Get_Blood_oxygen;
         value[1] = (byte) Number;
+        insertDateValue(value, dateOfLastData);
         crcValue(value);
         return value;
     }
@@ -1428,34 +1546,8 @@ public class BleSDK {
     }
 
 
-    static boolean isSetDialinterface=false;
-    public static byte[] SetDialinterface(int index) {
-        isSetDialinterface=true;
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Set_DeviceInfo;
-        value[12] =(byte)( 0x80+index);
-        crcValue(value);
-        return value;
-    }
 
-    public static byte[] SetDeviceInfo(MyDeviceInfo deviceBaseParameter) {
-        isSetDialinterface=false;
-        byte[] value = new byte[16];
-        value[0] = DeviceConst.CMD_Set_DeviceInfo;
-        value[1] = (byte) (deviceBaseParameter.isDistanceUnit() ? 0x81 : 0x80);
-        value[2] = (byte) (deviceBaseParameter.isIs12Hour() ? 0x81 : 0x80);
-        value[3] = (byte) (deviceBaseParameter.isBright_screen() ? 0x81 : 0x80);
-        value[4] = (byte) (!deviceBaseParameter.isTemperature_unit() ? 0x81 : 0x80);
-        value[5] = (byte) (deviceBaseParameter.isFahrenheit_or_centigrade() ? 0x81 : 0x80);
-        value[6] = (byte )0x80;
-        value[9] =(byte)  deviceBaseParameter.getBaseheart();
-        value[11] =(byte) (0x80 + deviceBaseParameter.getScreenBrightness());
-        value[12] =(byte) (0x80 + deviceBaseParameter.getDialinterface());
-       // value[13] =(byte) (deviceBaseParameter.isSocial_distance_switch() ? 0x81 : 0x80);
-        value[14] =(byte) (deviceBaseParameter.isChinese_English_switch() ? 0x81 : 0x80);
-        crcValue(value);
-        return value;
-    }
+
 
     protected static boolean RealTimeThreeAxisSensorData=true;
     public static byte[] RealTimeThreeAxisSensorData(boolean open) {
@@ -1475,16 +1567,33 @@ public class BleSDK {
         return value;
     }
 
-
-    public static byte[] GetECGwaveform(int Number) {
+protected static boolean read;
+    public static byte[] GetECGwaveform(boolean readdata,int  num) {
+        read=readdata;
         byte[] value = new byte[16];
         value[0] = DeviceConst.GetECGwaveform;
-        value[1] = (byte) Number;
+        value[1] = readdata?(byte)0x00:(byte)0x99;
+        value[2] = (byte)num;
         crcValue(value);
         return value;
     }
 
-    public static byte[] Obtain_The_data_of_manual_blood_oxygen_test(int Number) {
+    public static byte[] GetECGwaveform(boolean readdata,int  num, String date) {
+        read=readdata;
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.GetECGwaveform;
+        value[1] = readdata?(byte)0x00:(byte)0x99;
+        value[2] = (byte)num;
+        insertDateValue(value, date);
+        crcValue(value);
+        return value;
+    }
+
+
+
+   protected static  boolean Obtain_The_data_of_manual_blood_oxygen_test;
+    public static byte[] Obtain_The_data_of_manual_blood_oxygen_test(byte Number) {
+        Obtain_The_data_of_manual_blood_oxygen_test=((byte) 0x99 == Number);
         byte[] value = new byte[16];
         value[0] = DeviceConst.GetAutomaticSpo2Monitoring;
         value[1] = (byte) Number;
@@ -1529,7 +1638,7 @@ public class BleSDK {
         byte[] infoValue = TextUtils.isEmpty(info) ? new byte[1] : getInfoValue(info, 60);
         byte[] value = new byte[infoValue.length + 3];
         value[0] = DeviceConst.CMD_Notify;
-        value[1] = sendData.getType()==12?(byte) 0xff:(byte)sendData.getType() ;
+        value[1] = (byte)sendData.getType() ;
         value[2] = (byte) infoValue.length;
         System.arraycopy(infoValue, 0, value, 3, infoValue.length);
         return value;
@@ -1643,4 +1752,83 @@ public class BleSDK {
         value[value.length - 1] = (byte) (crc & 0xff);
     }
 
+
+
+    protected static boolean Qrcode=false;
+
+    public static byte[] lockScreen() {
+        Qrcode=true;
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.Qrcode;
+        value[1] = (byte) 0x80;
+        crcValue(value);
+        return value;
+    }
+
+    public static byte[]  unlockScreen() {
+        Qrcode=false;
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.Qrcode;
+        value[1] =  (byte) 0x81;
+        crcValue(value);
+        return value;
+    }
+
+
+
+    public static byte[] EnterTheMainInterface() {
+        Qrcode=true;
+        byte[] value = new byte[16];
+        value[0] = DeviceConst.Qrcode;
+        value[1] = (byte) 0x82;
+        crcValue(value);
+        return value;
+    }
+    public static void insertDateValue(byte[] value, String time) {
+        if (!TextUtils.isEmpty(time)) {
+            String[] timeArray = time.split(" ");
+            String INDEX;
+            if (time.contains("-")) {
+                INDEX = "-";
+            } else {
+                INDEX = "\\.";
+            }
+            int year = Integer.parseInt(timeArray[0].split(INDEX)[0]);
+            int month = Integer.parseInt(timeArray[0].split(INDEX)[1]);
+            int day = Integer.parseInt(timeArray[0].split(INDEX)[2]);
+            int hour = Integer.parseInt(timeArray[1].split(":")[0]);
+            int min = Integer.parseInt(timeArray[1].split(":")[1]);
+            int second = Integer.parseInt(timeArray[1].split(":")[2]);
+            value[4] = ResolveUtil.getTimeValue(year);
+            value[5] = ResolveUtil.getTimeValue(month);
+            value[6] = ResolveUtil.getTimeValue(day);
+            value[7] = ResolveUtil.getTimeValue(hour);
+            value[8] = ResolveUtil.getTimeValue(min);
+            value[9] = ResolveUtil.getTimeValue(second);
+        }
+
+    }
+
+
+
+
+    public static void insertDateValueNoH(byte[] value, String time) {
+        if (!TextUtils.isEmpty(time)&&time.contains("-")) {
+            String[] timeArray = time.split(" ");
+            String INDEX;
+            if (time.contains("-")) {
+                INDEX = "-";
+            } else {
+                INDEX = "\\.";
+            }
+            int year = Integer.parseInt(timeArray[0].split(INDEX)[0]);
+            int month = Integer.parseInt(timeArray[0].split(INDEX)[1]);
+            int day = Integer.parseInt(timeArray[0].split(INDEX)[2]);
+            value[4] = ResolveUtil.getTimeValue(year);
+            value[5] = ResolveUtil.getTimeValue(month);
+            value[6] = ResolveUtil.getTimeValue(day);
+        }
+
+
+    }
 }

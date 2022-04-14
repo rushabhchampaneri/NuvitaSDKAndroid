@@ -4,7 +4,7 @@ public class WeatherData {
     int tempNow;
     int tempHigh;
     int tempLow;
-    String cityName;
+    String cityName="";
     int weatherId;
 
     public int getTempNow() {

@@ -4,9 +4,9 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
-
         jcenter() // Warning: this repository is going to shut down soon
     }
 }
 rootProject.name = "HealthMonitoringApp"
-include ':app',':blesdk_2025'
+include ':app'
+      //  ':blesdk_2025'

@@ -5,16 +5,42 @@ package com.jstyle.blesdk2025.constant;
  */
 
 public class DeviceKey {
+    public static final String heartValue = "heartValue";
+    public static final String hrvValue = "hrvValue";
+    public static final String Quality = "Quality";
+
+    public static final String HangUp = "HangUp";
+    public static final String Telephone = "Telephone";
+    public static final String Photograph = "Photograph";
+    public static final String CanclePhotograph = "CanclePhotograph";
+    public static final String type = "type";
+    public static final String Play = "Play";
+    public static final String Suspend = "Suspend";
+    public static final String LastSong = "LastSong";
+    public static final String NextSong = "NextSong";
+    public static final String VolumeReduction = "VolumeReduction";
+    public static final String VolumeUp = "VolumeUp";
+    public static final String FindYourPhone = "FindYourPhone";
+    public static final String Cancle_FindPhone = "Cancle_FindPhone";
+    public static final String SOS = "SOS";
     public static final String DataType = "dataType";
+    public static final String enterActivityModeSuccess = "enterActivityModeSuccess";
+    public static final String Type = "Type";
+    public static final String Manual = "Manual";
+    public static final String automatic = "automatic";
     public static final String Data = "dicData";
     public static final String End = "dataEnd";
+    public static final String index = "index";
+    public static final String scanInterval = "scanInterval";
+    public static final String scanTime = "scanTime";
+    public static final String signalStrength = "signalStrength";
     public static final String arrayX = "arrayX";
     public static final String arrayY = "arrayY";
     public static final String arrayZ = "arrayZ";
     public static final String arrayPpgRawData = "arrayPpgRawData";
     public static final String KGpsResCheck0 = "KGpsResCheck0"; // 设备时间   GET_DEVICE_Time
     public static final String KGpsResCheck1 = "KGpsResCheck1"; // 设备时间
-
+    public static final String Band = "Band";
     public static final String KFinishFlag = "finish";
     public static final String DeviceTime = "strDeviceTime"; // 设备时间   GET_DEVICE_Time
     public static final String GPSTime = "gpsExpirationTime"; // 设备时间   GET_DEVICE_Time
@@ -27,7 +53,7 @@ public class DeviceKey {
      *   Height      身高
      *   Weight      体重
      *   stepLength  步长
-     *   deviceId    设备ID
+     *   deviceId    设备ID 
      */
     public static final String Gender = "MyGender";
     public static final String Age = "MyAge";
@@ -158,6 +184,7 @@ public class DeviceKey {
 
     public static final String KSleepLength = "sleepLength";
     public static final String ArraySleep = "arraySleepQuality";
+    public static final String sleepUnitLength = "sleepUnitLength";//是不是一分钟的睡眠数据 1为1分钟数据 0为5分钟数据
 
     /*
      *  GET_HEART_DATA
@@ -167,7 +194,7 @@ public class DeviceKey {
 
     public static final String ArrayDynamicHR = "arrayDynamicHR";
     public static final String Blood_oxygen = "Blood_oxygen";
-    public static final String automatic = "automatic";
+
 
 
     /*
@@ -339,6 +366,7 @@ public class DeviceKey {
     public static final String ECGLowBpValue = "ECGLowBpValue";
     public static final String ECGMoodValue = "ECGMoodValue";
     public static final String ECGBreathValue = "ECGBreathValue";
+    public static final String KEcgDataString = "KEcgDataString"; // ecg
     public static final String ECGValue = "ECGValue";
     public static final String PPGValue = "PPGValue";
     public static final String EcgStatus = "EcgStatus";

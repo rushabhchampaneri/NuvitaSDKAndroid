@@ -81,7 +81,7 @@ public class EcgActivity extends BaseActivity {
               if (BleManager.getInstance().isConnected()) {
                   if(binding.open.getText().toString().equals(getString(R.string.start_to_meaurse))) {
                       binding.open.setText(getString(R.string.stop));
-                      sendValue(BleSDK.enableEcgPPg(4, MeasureTimes));
+                      //sendValue(BleSDK.enableEcgPPg(4, MeasureTimes));
                   }else {
                       binding.open.setText(getString(R.string.start_to_meaurse));
                       sendValue(BleSDK.stopEcgPPg());
