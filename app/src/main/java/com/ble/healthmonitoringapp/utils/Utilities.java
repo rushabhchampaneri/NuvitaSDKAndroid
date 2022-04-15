@@ -157,6 +157,13 @@ public class Utilities {
         String formattedDate = df.format(c.getTime());
         return formattedDate;
     }
+    public static String getFIleCreateDate() {
+        Calendar c = Calendar.getInstance();
+        System.out.println("Current time => " + c.getTime());
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
+        String formattedDate = df.format(c.getTime());
+        return formattedDate;
+    }
     public  static int getValueInt(String s){
         try {
             return Integer.parseInt(s);
@@ -245,6 +252,12 @@ public class Utilities {
     public static void showConnectDialog(Context context) {
         progressDialog = new ProgressDialog(context);
         progressDialog.setMessage(context.getString(R.string.connectting));
+        progressDialog.setCancelable(false);
+        if (!progressDialog.isShowing()) progressDialog.show();
+    }
+    public static void showProgress(Context context,String mes) {
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage(mes);
         progressDialog.setCancelable(false);
         if (!progressDialog.isShowing()) progressDialog.show();
     }

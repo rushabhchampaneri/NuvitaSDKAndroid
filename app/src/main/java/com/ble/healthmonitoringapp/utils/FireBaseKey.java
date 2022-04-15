@@ -13,6 +13,7 @@ public class FireBaseKey {
     public static String FIREBASE_HeartRate="HeartRate";
     public static String FIREBASE_SPO2="SpO2";
     public static String FIREBASE_ECG_PPG="ECG";
+    public static String FIREBASE_ECG_Report="ECGReport";
     public static String FIREBASE_HRV="Hrv";
     public static String FIREBASE_Temperature="Temperature";
     public static String FIREBASE_Blood_pressure="BloodPressure";

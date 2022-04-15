@@ -3,7 +3,7 @@
     <string name="connected_succesfully">Connected Succesfully</string>
 
 
-    <string name="ecg_bluetooth01_device_connected_succesfully">ECG Bluetooth01 device connected succesfully</string>
+    <string name="ecg_bluetooth01_device_connected_succesfully">device connected successfully</string>
     <string name="enable_location_permission">Enable Location Permission</string>
     <string name="enable_location_setting">Enable Location</string>
     <string name="enable_storage_permission">Enable Storage Permission</string>
@@ -47,5 +47,6 @@ It can be enabled under Phone Settings>Apps>Permissions, SET NOW?
     <string name="stop">Stop</string>
     <string name="view_ecg_report">View ECG Report</string>
     <string name="genrate_ecg_report">Generate Ecg Report</string>
+    <string name="please_wait">Please wait...</string>
 
 </resources>

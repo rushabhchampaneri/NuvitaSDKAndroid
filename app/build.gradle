@@ -16,7 +16,7 @@ android {
         minSdk 21
         targetSdk 31
         versionCode 1
-        versionName "1.5"
+        versionName "1.7"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,6 +66,7 @@ dependencies {
     implementation 'com.github.lecho:hellocharts-library:1.5.8@aar'
     implementation platform('com.google.firebase:firebase-bom:29.0.4')
     implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-storage'
 
     // implementation 'com.google.firebase:firebase-analytics'
 }

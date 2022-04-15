@@ -8,8 +8,12 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -80,7 +84,7 @@ public class DeviceScanActivity extends AppCompatActivity {
                     scanLeDevice(false);
                     Utilities.dissMissDialog();
                     ConnectDeviceDialog connectDeviceDialog = new ConnectDeviceDialog();
-                    connectDeviceDialog.showDialog(DeviceScanActivity.this);
+                    connectDeviceDialog.showDialog(DeviceScanActivity.this,Utilities.DeviceName);
                 } else if (action.equals(BleService.ACTION_GATT_DISCONNECTED)) {
                     Utilities.dissMissDialog();
                 }
@@ -102,7 +106,19 @@ public class DeviceScanActivity extends AppCompatActivity {
         if (CheckSelfPermission.isBluetoothOn(DeviceScanActivity.this)){
             if (CheckSelfPermission.isLocationOn(DeviceScanActivity.this)){
                 if(checkLocationPermission()){
-                    return true;
+                   if(CheckSelfPermission.checkStoragePermission(this)){
+                       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                           if (Environment.isExternalStorageManager()) {
+                               return true;
+                           } else {
+                               Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                               intent.setData(Uri.parse("package:" + getPackageName()));
+                               startActivityForResult(intent, 0);
+                           }
+                       }else {
+                           return true;
+                       }
+                   }
                 }
             }
         }

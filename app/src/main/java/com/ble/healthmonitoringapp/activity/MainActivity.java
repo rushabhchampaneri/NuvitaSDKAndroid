@@ -16,6 +16,7 @@ import com.ble.healthmonitoringapp.ble.BleManager;
 import com.ble.healthmonitoringapp.ble.BleService;
 import com.ble.healthmonitoringapp.databinding.ActivityMainBinding;
 import com.ble.healthmonitoringapp.model.EcgHistoryData;
+import com.ble.healthmonitoringapp.utils.AppMethods;
 import com.ble.healthmonitoringapp.utils.BleData;
 import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
 import com.ble.healthmonitoringapp.utils.FireBaseKey;
@@ -76,7 +77,6 @@ public class MainActivity extends BaseActivity {
         InitUI();
         setOnClickListener();
     }
-
     private void InitUI() {
         binding.tvDeviceName.setText(Utilities.DeviceName);
         binding.ivConnect.setImageResource(R.drawable.connected);
@@ -153,6 +153,7 @@ public class MainActivity extends BaseActivity {
                 if (CheckSelfPermission.checkStoragePermission(this)) {
                     if (CheckSelfPermission.checkStoragePermissionRetional(this)) {
                         if (BleManager.getInstance().isConnected()) {
+                            AppMethods.showProgressDialog(this,getString(R.string.please_wait));
                             getEcgData();
                         }
                     }
@@ -209,7 +210,7 @@ public class MainActivity extends BaseActivity {
     public void dataCallback(Map<String, Object> map) {
         super.dataCallback(map);
         String dataType = getDataType(map);
-      //  Log.e("dataCallback :-","data-- "+map.toString());
+       Log.e("dataCallback :-","data-- "+map.toString());
         switch (dataType) {
             case BleConst.SetDeviceTime:
                 sendValue(BleSDK.GetDeviceTime());
@@ -218,7 +219,7 @@ public class MainActivity extends BaseActivity {
                 binding.tvCurrentTime.setText(Utilities.getTime(getData(map).get(DeviceKey.DeviceTime)).toUpperCase());
                 sendValue(BleSDK.GetDeviceBatteryLevel());
                 break;
-                case BleConst.GetDeviceBatteryLevel:
+            case BleConst.GetDeviceBatteryLevel:
                 Map<String, String> data = getData(map);
                 String battery = data.get(DeviceKey.BatteryLevel);
                 getStaticHeartHistoryData(ModeStart);
@@ -257,9 +258,11 @@ public class MainActivity extends BaseActivity {
                     boolean end = getEnd(map);
                     dataCount++;
                     listHeart.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
+                    Log.e("saveHeartHistoryData","vvvvvv"+end);
                     if (end) {
                         dataCount = 0;
                         getHrvData(ModeStart);
+                        Log.e("saveHeartHistoryData","vvvvvv");
                         saveHeartHistoryData();
                     }
                     if (dataCount == 50) {
@@ -267,8 +270,9 @@ public class MainActivity extends BaseActivity {
                         if (end) {
                             getHrvData(ModeStart);
                             saveHeartHistoryData();
+                            Log.e("saveHeartHistoryData","vvvvvv111");
                         } else {
-                            // getStaticHeartHistoryData(ModeContinue);
+                             getStaticHeartHistoryData(ModeContinue);
                         }
                     }
                 } catch (Exception e) {
@@ -422,16 +426,6 @@ public class MainActivity extends BaseActivity {
                    // Toast.makeText(MainActivity.this,"Sleep Start Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
                 }
                 break;
-           /* case BleConst.EcgppG:
-                try {
-                    Map<String, Object> mapsa=(Map<String, Object>)map.get(DeviceKey.Data);
-                    binding.tvAvgHrvEcg.setText(""+mapsa.get("heartValue").toString());
-                    binding.tvHrvEcg.setText(""+mapsa.get("hrvValue").toString());
-                    mood=Utilities.getValueInt(mapsa.get("Quality").toString().trim());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                break;*/
                 case BleConst.ECGdata:
                 boolean finish=getEnd(map);
                 Map<String,String>ecgmaps= getData(map);
@@ -443,8 +437,6 @@ public class MainActivity extends BaseActivity {
                     int hrv = Integer.parseInt(ecgmaps.get(DeviceKey.HRV));
                     int hr = Integer.parseInt(ecgmaps.get(DeviceKey.HeartRate));
                     int moodValue = Integer.parseInt(ecgmaps.get(DeviceKey.ECGMoodValue));
-                    binding.tvAvgHrvEcg.setText(""+hr);
-                    binding.tvHrvEcg.setText(""+hrv);
                     mood=moodValue;
                     healthEcgData.setTime(ecgDate);
                     healthEcgData.setHrv(hrv);
@@ -459,27 +451,26 @@ public class MainActivity extends BaseActivity {
                     if (!TextUtils.isEmpty(ecgDate)) {
                         healthEcgData.setArrayECGData(stringBuffer.toString());
                         ecgDataList.add(healthEcgData);
+                        AppMethods.hideProgressDialog(this);
                         if(ecgDataList.size()!=0){
                             Intent intent=    new Intent(this,EcgReportActivity.class);
                             intent.putExtra("ecgData", (Serializable) ecgDataList)  ;
                             startActivity(intent);
                         }
-                        Log.e("jsjsjsj","isEmpty(ecgDate)"+ecgDate+"***"+ecgDataList.size());
+                        Log.e("ecgData","isEmpty(ecgDate)"+ecgDate+"***"+ecgDataList.size());
                         if ( !ecgDate.equals(lastEcgDate) &&index < 9) {
                             index++;
                             ecgDate = "";
                             //sendValue(BleSDK.GetECGwaveform(true,index,lastEcgDate));
                         } else {
-                            Log.e("jsjsjsj","end__ecgDate");
                             ecgDate = "";
                             index = 0;
                       // last
-
                         }
                     } else {
-                        Log.e("jsjsjsj","end__ecgDate");
                         ecgDate = "";
                         index = 0;
+                        AppMethods.hideProgressDialog(this);
                         Intent intent=    new Intent(this,EcgReportActivity.class);
                         intent.putExtra("ecgData", (Serializable) ecgDataList)  ;
                         startActivity(intent);
@@ -581,6 +572,8 @@ public class MainActivity extends BaseActivity {
             binding.tvMaxHrv.setText(Collections.max(hrvIntList) + "");
             binding.tvMinHrv.setText(Collections.min(hrvIntList) + "");
             binding.tvAvgHrv.setText((avg / count) + "");
+            binding.tvHrvEcg.setText(""+(avg / count));
+
         } catch (Exception e) {
             e.printStackTrace();
             //    Toast.makeText(MainActivity.this,"Hrv Values Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();
@@ -626,9 +619,11 @@ public class MainActivity extends BaseActivity {
                     count += 1;
                 }
             }
+            Log.e("vvvv",heartIntList.size()+" "+heartList.size());
             binding.tvHighestValue.setText(Collections.max(heartIntList) + "");
             binding.tvLowestValue.setText(Collections.min(heartIntList) + "");
             binding.tvAvgValue.setText((avg / count) + "");
+            binding.tvAvgHrvEcg.setText(""+(avg / count));
         } catch (Exception e) {
             e.printStackTrace();
             // Toast.makeText(MainActivity.this,"HeartValues Crash "+e.getMessage(),Toast.LENGTH_SHORT).show();

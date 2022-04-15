@@ -1,5 +1,6 @@
 package com.ble.healthmonitoringapp.activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -26,19 +27,27 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.webkit.WebSettings;
+import android.widget.Toast;
 
 import com.ble.healthmonitoringapp.BuildConfig;
 import com.ble.healthmonitoringapp.Myapp;
 import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.databinding.ActivityEcgReportBinding;
 import com.ble.healthmonitoringapp.model.EcgHistoryData;
+import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
+import com.ble.healthmonitoringapp.utils.FireBaseKey;
+import com.ble.healthmonitoringapp.utils.PDFCreate;
 import com.ble.healthmonitoringapp.utils.SchedulersTransformer;
 import com.ble.healthmonitoringapp.utils.Utilities;
 import com.demon.js_pdf.WebViewHelper;
-import com.jstyle.blesdk2025.Util.PDFCreate;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.jstyle.blesdk2025.model.UserInfo;
 import com.neurosky.AlgoSdk.NskAlgoDataType;
 import com.neurosky.AlgoSdk.NskAlgoECGValueType;
@@ -57,8 +66,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -73,25 +84,36 @@ public class EcgReportActivity extends AppCompatActivity {
     private ActivityEcgReportBinding binding;
     private Disposable disposablePdf;
     ArrayList<EcgHistoryData> ecgHistoryDataArrayList =new ArrayList<>();
-
+    String Path="";
+    private final static String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + BuildConfig.APPLICATION_ID;
+    public  static String pdfPath;
+    boolean isCreate=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
        binding= DataBindingUtil.setContentView(this,R.layout.activity_ecg_report);
-       requestWindowFeature(Window.FEATURE_NO_TITLE);
-       getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        ecgHistoryDataArrayList=(ArrayList<EcgHistoryData>) getIntent().getSerializableExtra("ecgData");
+      ecgHistoryDataArrayList=(ArrayList<EcgHistoryData>) getIntent().getSerializableExtra("ecgData");
+        pdfPath=(Build.VERSION.SDK_INT >= 30? getExternalCacheDir():baseDir)+"/pdf/";
        WebviewSetting();
        requestPermission(this);
        binding.ivBack.setOnClickListener(v->{
            finish();
         });
+        binding.btnGenerate.setOnClickListener(v->{
+            init();
+        });
         binding.ivUpload.setOnClickListener(v->{
-            sharePdfByPhone(EcgReportActivity.this,Path);
+            if (CheckSelfPermission.isNetworkConnected(EcgReportActivity.this)) {
+                if(isCreate) {
+                    uploadFile();
+                }else {
+                    Toast.makeText(this,"Please Generate pdf report",Toast.LENGTH_SHORT).show();
+                }
+            }else {
+                Toast.makeText(this,"No Internet Connection",Toast.LENGTH_SHORT).show();
+            }
         });
 }
-
-
 
     int raw_data_index = 0;
     private NskAlgoSdk nskAlgoSdk;
@@ -99,7 +121,7 @@ public class EcgReportActivity extends AppCompatActivity {
     List<Integer> filterEcg;
     @SuppressLint("HandlerLeak")
     private void init()  {
-       Utilities.showConnectDialog(this);
+       Utilities.showProgress(this,getString(R.string.please_wait));
         List<Integer>  ecgData=new ArrayList<>();
         if(ecgHistoryDataArrayList.size()!=0){
             for(int i=0;i<ecgHistoryDataArrayList.size();i++){
@@ -122,7 +144,6 @@ public class EcgReportActivity extends AppCompatActivity {
             public void onECGAlgoIndex(int type,  int value) {
                 switch (type) {
                     case NskAlgoECGValueType.NSK_ALGO_ECG_VALUE_TYPE_SMOOTH:
-                        Log.e("sdadasd",value+"***");
                         if(value>8000){value=8000;}
                         if(value<-8000){value=-8000;}
                         filterEcg.add(value);
@@ -174,8 +195,9 @@ public class EcgReportActivity extends AppCompatActivity {
                         }else{
                             Close();
                            Utilities.dissMissDialog();
+                            isCreate=true;
                            createFile(filterEcg);
-                          //  showEcgChart(filterEcg,8000,-8000);
+                            //  showEcgChart(filterEcg,8000,-8000);
                         }
                     }catch (Throwable e){ e.printStackTrace(); }
                 }
@@ -184,7 +206,7 @@ public class EcgReportActivity extends AppCompatActivity {
         }
 
     }
-    private void  Close(){
+    private void Close(){
         try {
             if(null!=timer){
                 timer.shutdownNow();
@@ -202,11 +224,13 @@ public class EcgReportActivity extends AppCompatActivity {
 
 
 
-    String Path="";
-    private final static String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + BuildConfig.APPLICATION_ID;
-    public final static String pdfPath=(Build.VERSION.SDK_INT >= 30? new Myapp().getExternalCacheDir():baseDir)+"/pdf/";
-    private void createFile( final List<Integer> ecgData) {
-    Utilities.showConnectDialog(this);
+     private void createFile( final List<Integer> ecgData) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Utilities.showProgress(EcgReportActivity.this,getString(R.string.please_wait));
+            }
+        });
        io.reactivex.Observable.create(new ObservableOnSubscribe<Object>() {
             @Override
             public void subscribe(ObservableEmitter<Object> emitter) throws Exception {
@@ -216,16 +240,16 @@ public class EcgReportActivity extends AppCompatActivity {
                 if (!dir.exists()) {
                     dir.mkdirs();
                 }
-                Path= pdfPath+ "ecghistory" + ".pdf";
+                Path= pdfPath+ "ECGReport_"+Utilities.getFIleCreateDate() + ".pdf";
                 UserInfo userInfo = new UserInfo();
-                userInfo.setGender("gender:male");
-                userInfo.setAge("age:18");
-                userInfo.setDate("date:2022/02/18");
-                userInfo.setName("name:hello");
-                userInfo.setHeight("height:170cm");
-                userInfo.setWeight("weight:75kg");
-                userInfo.setEcgTitle("ECG Report(Lead Ⅰ)");//not null
-                userInfo.setEcgReportTips("The report is for reference only");//not null
+                userInfo.setGender("Gender: ");
+                userInfo.setAge("Age: ");
+                userInfo.setDate("Date:"+Utilities.getCurrentDate());
+                userInfo.setName("Name:             ");
+                userInfo.setHeight("Height: ");
+                userInfo.setWeight("Weight: ");
+                userInfo.setEcgTitle("ECG Report("+Utilities.MacAddress+")");//not null
+                userInfo.setEcgReportTips(" ");//not null
                 PDFCreate.createPdf(Path, EcgReportActivity.this, ecgData, userInfo);
                 emitter.onComplete();
             }
@@ -243,13 +267,23 @@ public class EcgReportActivity extends AppCompatActivity {
             @Override
             public void onError(Throwable e) {
                 Log.e("jssjsjj",e.toString());
-               Utilities.dissMissDialog();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Utilities.dissMissDialog();
+                    }
+                });
             }
 
             @Override
             public void onComplete() {
-                Utilities.dissMissDialog();
-                WebViewHelper.WebViewLoadPDF(binding.historyWebview, Path);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Utilities.dissMissDialog();
+                        WebViewHelper.WebViewLoadPDF(binding.historyWebview, Path);
+                    }
+                });
             }
         });
 
@@ -258,7 +292,7 @@ public class EcgReportActivity extends AppCompatActivity {
     private void requestPermission(Context context){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()) {
-                init();
+             //   init();
             } else {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                 intent.setData(Uri.parse("package:" + context.getPackageName()));
@@ -267,12 +301,12 @@ public class EcgReportActivity extends AppCompatActivity {
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                     ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                init();
+              //  init();
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
             }
         }else{
-            init();
+           // init();
         }
     }
 
@@ -289,7 +323,7 @@ public class EcgReportActivity extends AppCompatActivity {
         if (requestCode == 0) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                     ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                init();
+               // init();
             } else {
 
             }
@@ -312,11 +346,11 @@ public class EcgReportActivity extends AppCompatActivity {
         binding.historyWebview.setBackgroundColor(Color.WHITE);
     }
 
-    public static void sharePdfByPhone(Activity context, String path) {
+    public void sharePdfByPhone(Activity context, String path) {
         Uri uri = null;
         Intent shareIntent = new Intent();
         if (Build.VERSION.SDK_INT >= 24) {
-            uri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", new File(path));
+            uri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(path));
             shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         } else {
             uri = Uri.fromFile(new File(path));
@@ -324,7 +358,7 @@ public class EcgReportActivity extends AppCompatActivity {
         shareIntent.setAction(Intent.ACTION_SEND);
         shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
         shareIntent.setType("*/*");
-        context.startActivity(Intent.createChooser(shareIntent, "share"));
+        startActivity(Intent.createChooser(shareIntent, "share"));
     }
 
     @Override
@@ -487,11 +521,11 @@ public class EcgReportActivity extends AppCompatActivity {
                 profiles = nskAlgoSdk.NskAlgoProfiles();
                 // setup the ECG config
                 // assert(nskAlgoSdk.NskAlgoSetECGConfigAfib((float)3.5) == true);
-                assert (nskAlgoSdk.NskAlgoSetECGConfigStress(30, 30) == true);
-                assert (nskAlgoSdk.NskAlgoSetECGConfigHeartage(30) == true);
-                assert (nskAlgoSdk.NskAlgoSetECGConfigHRV(30) == true);
-                assert (nskAlgoSdk.NskAlgoSetECGConfigHRVTD(30, 30) == true);
-                assert (nskAlgoSdk.NskAlgoSetECGConfigHRVFD(30, 30) == true);
+                if (nskAlgoSdk.NskAlgoSetECGConfigStress(30, 30) == true);
+                if (nskAlgoSdk.NskAlgoSetECGConfigHeartage(30) == true);
+                if (nskAlgoSdk.NskAlgoSetECGConfigHRV(30) == true);
+                if (nskAlgoSdk.NskAlgoSetECGConfigHRVTD(30, 30) == true);
+                if (nskAlgoSdk.NskAlgoSetECGConfigHRVFD(30, 30) == true);
 
                 // nskAlgoSdk.setSignalQualityWatchDog((short)20, (short)5);
                 // retrieve the baseline data
@@ -515,6 +549,48 @@ public class EcgReportActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+    private void uploadFile(){
+        Utilities.showProgress(this,getString(R.string.please_wait));
+        Uri uri = null;
+        if (Build.VERSION.SDK_INT >= 24) {
+            uri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", new File(Path));
+        } else {
+            uri = Uri.fromFile(new File(Path));
+        }
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        final StorageReference filepath = storageRef.child(Utilities.MacAddress+"/ECGReport_"+Utilities.getFIleCreateDate() + "." + "pdf");
+        filepath.putFile(uri).continueWithTask(new Continuation() {
+            @Override
+            public Object then(@NonNull Task task) throws Exception {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
+                }
+                return filepath.getDownloadUrl();
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                if (task.isSuccessful()) {
+                    // After uploading is done it progress
+                    // dialog box will be dismissed
+                    Utilities.dissMissDialog();
+                    Uri downloadUri = task.getResult();
 
+                    Map<String, Object> urlMap = new HashMap<>();
+                    urlMap.put(FireBaseKey.Values, downloadUri.toString());
+                   FirebaseFirestore  db = FirebaseFirestore.getInstance();
+                   db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                            document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_ECG_Report)
+                            .document(Utilities.getCurrentDate())
+                            .set(Utilities.getTimeHashmap(urlMap),SetOptions.merge());
+                    Toast.makeText(EcgReportActivity.this, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Utilities.dissMissDialog();
+                    Toast.makeText(EcgReportActivity.this, "UploadedFailed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 }

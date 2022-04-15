@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.activity.MainActivity;
 
@@ -16,8 +18,9 @@ public class ConnectDeviceDialog {
     Dialog dialog;
     private Context mContext;
     private LinearLayout ll_main;
+    private TextView tvName;
 
-    public void showDialog(Context context) {
+    public void showDialog(Context context,String name) {
         mContext = context;
         dialog = new Dialog(mContext);
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
@@ -29,7 +32,9 @@ public class ConnectDeviceDialog {
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
+        tvName=dialog.findViewById(R.id.tvName);
         ll_main = dialog.findViewById(R.id.ll_main);
+        tvName.setText(name+" "+context.getString(R.string.ecg_bluetooth01_device_connected_succesfully));
         new Handler().postDelayed(new Runnable() {
            @Override
            public void run() {
