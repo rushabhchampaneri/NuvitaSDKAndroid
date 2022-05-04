@@ -21,7 +21,7 @@
         <entry key="app/src/main/res/drawable/ic_arrow_back.xml" value="0.201" />
         <entry key="app/src/main/res/drawable/ic_baseline_cloud_upload_24.xml" value="0.201" />
         <entry key="app/src/main/res/layout/activity_ecg.xml" value="0.16" />
-        <entry key="app/src/main/res/layout/activity_ecg_report.xml" value="0.16" />
+        <entry key="app/src/main/res/layout/activity_ecg_report.xml" value="0.2" />
         <entry key="app/src/main/res/layout/activity_finding_device.xml" value="0.19322916666666667" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.19322916666666667" />

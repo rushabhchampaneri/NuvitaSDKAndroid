@@ -57,10 +57,15 @@ import com.neurosky.AlgoSdk.NskAlgoSdk;
 import com.neurosky.AlgoSdk.NskAlgoType;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -75,6 +80,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
@@ -87,13 +93,16 @@ public class EcgReportActivity extends AppCompatActivity {
     String Path="";
     private final static String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + BuildConfig.APPLICATION_ID;
     public  static String pdfPath;
+    public  static String csvPath;
     boolean isCreate=false;
+    String  csvFilePath="";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
        binding= DataBindingUtil.setContentView(this,R.layout.activity_ecg_report);
       ecgHistoryDataArrayList=(ArrayList<EcgHistoryData>) getIntent().getSerializableExtra("ecgData");
         pdfPath=(Build.VERSION.SDK_INT >= 30? getExternalCacheDir():baseDir)+"/pdf/";
+        csvPath=(Build.VERSION.SDK_INT >= 30? getExternalCacheDir():baseDir)+"/csv/";
        WebviewSetting();
        requestPermission(this);
        binding.ivBack.setOnClickListener(v->{
@@ -231,15 +240,20 @@ public class EcgReportActivity extends AppCompatActivity {
                 Utilities.showProgress(EcgReportActivity.this,getString(R.string.please_wait));
             }
         });
-       io.reactivex.Observable.create(new ObservableOnSubscribe<Object>() {
+       Observable.create(new ObservableOnSubscribe<Object>() {
             @Override
             public void subscribe(ObservableEmitter<Object> emitter) throws Exception {
                 File dir = new File(pdfPath);
+                File dr = new  File(csvPath);
                 //有没有当前文件夹就创建一个，注意读写权限
                 // Create one if there is no current folder. Pay attention to read and write permissions
                 if (!dir.exists()) {
                     dir.mkdirs();
                 }
+                if(!dr.exists()){
+                    dr.mkdirs();
+                }
+                csvFilePath=csvPath+"ECGReport_"+Utilities.getFIleCreateDate() + ".csv";
                 Path= pdfPath+ "ECGReport_"+Utilities.getFIleCreateDate() + ".pdf";
                 UserInfo userInfo = new UserInfo();
                 userInfo.setGender("Gender: ");
@@ -250,6 +264,7 @@ public class EcgReportActivity extends AppCompatActivity {
                 userInfo.setWeight("Weight: ");
                 userInfo.setEcgTitle("ECG Report("+Utilities.MacAddress+")");//not null
                 userInfo.setEcgReportTips(" ");//not null
+                createTextFile(ecgData);
                 PDFCreate.createPdf(Path, EcgReportActivity.this, ecgData, userInfo);
                 emitter.onComplete();
             }
@@ -287,8 +302,39 @@ public class EcgReportActivity extends AppCompatActivity {
             }
         });
 
-
     }
+   public void createTextFile(List<Integer> data){
+       File file = new File(csvFilePath);
+      // FileOutputStream outputStream = null;
+       StringBuilder builder =new StringBuilder();
+       builder.append("ECG Report("+Utilities.MacAddress+")");
+       builder.append(",");
+       builder.append("\n");
+       for (int i=0; i<data.size();i++){
+           builder.append(data.get(i)+",");
+           builder.append("\n");
+       }
+       try {
+           BufferedWriter fw = new BufferedWriter(new FileWriter(file));
+           fw.write(builder.toString());
+           fw.close();
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
+       /*try {
+           outputStream = new FileOutputStream(file);
+       } catch (FileNotFoundException var16) {
+           var16.printStackTrace();
+       }
+
+       try {
+           OutputStreamWriter fw = new OutputStreamWriter(outputStream);
+           fw.write(builder.toString());
+           fw.close();
+       } catch (IOException var15) {
+           var15.printStackTrace();
+       }*/
+   }
     private void requestPermission(Context context){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()) {
@@ -550,6 +596,48 @@ public class EcgReportActivity extends AppCompatActivity {
             }
         }
     }
+    private void uploadCsvFile(){
+        Uri uri = null;
+        if (Build.VERSION.SDK_INT >= 24) {
+            uri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", new File(csvFilePath));
+        } else {
+            uri = Uri.fromFile(new File(csvFilePath));
+        }
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        final StorageReference filepath = storageRef.child(Utilities.MacAddress+"/ECGReport_"+Utilities.getFIleCreateDate() + "." + "csv");
+        filepath.putFile(uri).continueWithTask(new Continuation() {
+            @Override
+            public Object then(@NonNull Task task) throws Exception {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
+                }
+                return filepath.getDownloadUrl();
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                if (task.isSuccessful()) {
+                    // After uploading is done it progress
+                    // dialog box will be dismissed
+                    Utilities.dissMissDialog();
+                    Uri downloadUri = task.getResult();
+
+                    Map<String, Object> urlMap = new HashMap<>();
+                    urlMap.put(FireBaseKey.Values, downloadUri.toString());
+                    FirebaseFirestore  db = FirebaseFirestore.getInstance();
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                            document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_ECG_ReportCsv)
+                            .document(Utilities.getCurrentDate())
+                            .set(Utilities.getTimeHashmap(urlMap),SetOptions.merge());
+                    Toast.makeText(EcgReportActivity.this, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Utilities.dissMissDialog();
+                    Toast.makeText(EcgReportActivity.this, "UploadedFailed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
     private void uploadFile(){
         Utilities.showProgress(this,getString(R.string.please_wait));
         Uri uri = null;
@@ -574,18 +662,17 @@ public class EcgReportActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     // After uploading is done it progress
                     // dialog box will be dismissed
-                    Utilities.dissMissDialog();
                     Uri downloadUri = task.getResult();
-
                     Map<String, Object> urlMap = new HashMap<>();
                     urlMap.put(FireBaseKey.Values, downloadUri.toString());
-                   FirebaseFirestore  db = FirebaseFirestore.getInstance();
-                   db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                    FirebaseFirestore  db = FirebaseFirestore.getInstance();
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                             document(Utilities.MacAddress)
                             .collection(FireBaseKey.FIREBASE_ECG_Report)
                             .document(Utilities.getCurrentDate())
                             .set(Utilities.getTimeHashmap(urlMap),SetOptions.merge());
-                    Toast.makeText(EcgReportActivity.this, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                    uploadCsvFile();
+                    //   Toast.makeText(EcgReportActivity.this, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
                 } else {
                     Utilities.dissMissDialog();
                     Toast.makeText(EcgReportActivity.this, "UploadedFailed", Toast.LENGTH_SHORT).show();
