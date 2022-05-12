@@ -96,6 +96,7 @@ public class EcgReportActivity extends AppCompatActivity {
     public  static String csvPath;
     boolean isCreate=false;
     String  csvFilePath="";
+    String  EcgDate="";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,12 +134,12 @@ public class EcgReportActivity extends AppCompatActivity {
        Utilities.showProgress(this,getString(R.string.please_wait));
         List<Integer>  ecgData=new ArrayList<>();
         if(ecgHistoryDataArrayList.size()!=0){
-            for(int i=0;i<ecgHistoryDataArrayList.size();i++){
-                String[] ecg=ecgHistoryDataArrayList.get(i).getArrayECGData().split(",");
+            Log.e("time",ecgHistoryDataArrayList.size()+" "+ecgHistoryDataArrayList.get(ecgHistoryDataArrayList.size()-1).getTime());
+            EcgDate=  ecgHistoryDataArrayList.get(ecgHistoryDataArrayList.size()-1).getTime();
+            String[] ecg=ecgHistoryDataArrayList.get(ecgHistoryDataArrayList.size()-1).getArrayECGData().split(",");
                 for (String e:ecg){
                     ecgData.add(Integer.parseInt(e));
                 }
-            }
         }
         raw_data_index = 0;
         enddata=false;
@@ -253,12 +254,12 @@ public class EcgReportActivity extends AppCompatActivity {
                 if(!dr.exists()){
                     dr.mkdirs();
                 }
-                csvFilePath=csvPath+"ECGReport_"+Utilities.getFIleCreateDate() + ".csv";
-                Path= pdfPath+ "ECGReport_"+Utilities.getFIleCreateDate() + ".pdf";
+                csvFilePath=csvPath+"ECGReport_"+Utilities.getFIleCreateDate(EcgDate) + ".csv";
+                Path= pdfPath+ "ECGReport_"+Utilities.getFIleCreateDate(EcgDate) + ".pdf";
                 UserInfo userInfo = new UserInfo();
                 userInfo.setGender("Gender: ");
                 userInfo.setAge("Age: ");
-                userInfo.setDate("Date:"+Utilities.getCurrentDate());
+                userInfo.setDate("Date:"+Utilities.getDeciveDate(EcgDate));
                 userInfo.setName("Name:             ");
                 userInfo.setHeight("Height: ");
                 userInfo.setWeight("Weight: ");
@@ -604,7 +605,7 @@ public class EcgReportActivity extends AppCompatActivity {
             uri = Uri.fromFile(new File(csvFilePath));
         }
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-        final StorageReference filepath = storageRef.child(Utilities.MacAddress+"/ECGReport_"+Utilities.getFIleCreateDate() + "." + "csv");
+        final StorageReference filepath = storageRef.child(Utilities.MacAddress+"/ECGReport_Android_"+Utilities.getFIleCreateDate(EcgDate) + "." + "csv");
         filepath.putFile(uri).continueWithTask(new Continuation() {
             @Override
             public Object then(@NonNull Task task) throws Exception {
@@ -624,12 +625,13 @@ public class EcgReportActivity extends AppCompatActivity {
 
                     Map<String, Object> urlMap = new HashMap<>();
                     urlMap.put(FireBaseKey.Values, downloadUri.toString());
+                    urlMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                     FirebaseFirestore  db = FirebaseFirestore.getInstance();
                     db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                             document(Utilities.MacAddress)
                             .collection(FireBaseKey.FIREBASE_ECG_ReportCsv)
                             .document(Utilities.getCurrentDate())
-                            .set(Utilities.getTimeHashmap(urlMap),SetOptions.merge());
+                            .set(Utilities.getTimeHashmap(urlMap,Utilities.getDeciveTime(EcgDate)),SetOptions.merge());
                     Toast.makeText(EcgReportActivity.this, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
                 } else {
                     Utilities.dissMissDialog();
@@ -647,7 +649,7 @@ public class EcgReportActivity extends AppCompatActivity {
             uri = Uri.fromFile(new File(Path));
         }
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-        final StorageReference filepath = storageRef.child(Utilities.MacAddress+"/ECGReport_"+Utilities.getFIleCreateDate() + "." + "pdf");
+        final StorageReference filepath = storageRef.child(Utilities.MacAddress+"/ECGReport_Android_"+Utilities.getFIleCreateDate(EcgDate) + "." + "pdf");
         filepath.putFile(uri).continueWithTask(new Continuation() {
             @Override
             public Object then(@NonNull Task task) throws Exception {
@@ -665,12 +667,13 @@ public class EcgReportActivity extends AppCompatActivity {
                     Uri downloadUri = task.getResult();
                     Map<String, Object> urlMap = new HashMap<>();
                     urlMap.put(FireBaseKey.Values, downloadUri.toString());
+                    urlMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                     FirebaseFirestore  db = FirebaseFirestore.getInstance();
                     db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                             document(Utilities.MacAddress)
                             .collection(FireBaseKey.FIREBASE_ECG_Report)
                             .document(Utilities.getCurrentDate())
-                            .set(Utilities.getTimeHashmap(urlMap),SetOptions.merge());
+                            .set(Utilities.getTimeHashmap(urlMap,Utilities.getDeciveTime(EcgDate)),SetOptions.merge());
                     uploadCsvFile();
                     //   Toast.makeText(EcgReportActivity.this, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
                 } else {

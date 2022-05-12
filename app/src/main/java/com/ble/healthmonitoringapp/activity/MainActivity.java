@@ -64,7 +64,6 @@ public class MainActivity extends BaseActivity {
     private List<Map<String, String>> listTemp = new ArrayList<>();
     private List<Map<String, String>> listSo2 = new ArrayList<>();
     private int MeasureTimes = 90;
-    FirebaseFirestore db;
     int dataCount = 0;
     int mood=0;
 
@@ -72,7 +71,6 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        db = FirebaseFirestore.getInstance();
         syncData();
         InitUI();
         setOnClickListener();
@@ -210,7 +208,7 @@ public class MainActivity extends BaseActivity {
     public void dataCallback(Map<String, Object> map) {
         super.dataCallback(map);
         String dataType = getDataType(map);
-       Log.e("dataCallback :-","data-- "+map.toString());
+      // Log.e("dataCallback :-","data-- "+map.toString());
         switch (dataType) {
             case BleConst.SetDeviceTime:
                 sendValue(BleSDK.GetDeviceTime());
@@ -258,11 +256,9 @@ public class MainActivity extends BaseActivity {
                     boolean end = getEnd(map);
                     dataCount++;
                     listHeart.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
-                    Log.e("saveHeartHistoryData","vvvvvv"+end);
                     if (end) {
                         dataCount = 0;
                         getHrvData(ModeStart);
-                        Log.e("saveHeartHistoryData","vvvvvv");
                         saveHeartHistoryData();
                     }
                     if (dataCount == 50) {
@@ -697,9 +693,11 @@ public class MainActivity extends BaseActivity {
     }
 
     private void dataUpload() {
-        for (int i = 0; i < heartList.size(); i++) {
+     FirebaseFirestore   db = FirebaseFirestore.getInstance();
+     for (int i = 0; i < heartList.size(); i++) {
                     Map<String, Object> HeartMap = new HashMap<>();
                     HeartMap.put(FireBaseKey.Values, heartList.get(i).getValue());
+                    HeartMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                     if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
                         db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                 document(Utilities.MacAddress)
@@ -711,6 +709,7 @@ public class MainActivity extends BaseActivity {
                 for (int i = 0; i < so2List.size(); i++) {
                     Map<String, Object> so2Map = new HashMap<>();
                     so2Map.put(FireBaseKey.Values, so2List.get(i).getValue());
+                    so2Map.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                     if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
                         db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                 document(Utilities.MacAddress)
@@ -724,6 +723,7 @@ public class MainActivity extends BaseActivity {
                         if (hrvList.get(i).getHrv() != 0) {
                             Map<String, Object> HrvMap = new HashMap<>();
                             HrvMap.put(FireBaseKey.Values, hrvList.get(i).getHrv());
+                            HrvMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                             db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                     document(Utilities.MacAddress)
                                     .collection(FireBaseKey.FIREBASE_HRV)
@@ -736,6 +736,7 @@ public class MainActivity extends BaseActivity {
                     if (hrvList.get(i).getStress() != 0) {
                         Map<String, Object> StressMap = new HashMap<>();
                         StressMap.put(FireBaseKey.Values, hrvList.get(i).getStress());
+                        StressMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                         if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
                             db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                     document(Utilities.MacAddress)
@@ -751,6 +752,8 @@ public class MainActivity extends BaseActivity {
                         Log.e("stepDataList",hrvList.size()+" ");
                         Map<String, Object> BloodPress = new HashMap<>();
                         BloodPress.put(FireBaseKey.Values, hrvList.get(i).getHighBp() + "/" + hrvList.get(i).getLowBp());
+                        BloodPress.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
+
                         if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
                             db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                     document(Utilities.MacAddress)
@@ -766,6 +769,7 @@ public class MainActivity extends BaseActivity {
                     activityDetail.put(FireBaseKey.Step, Utilities.getValueInt(stepDataList.get(i).getStep()));
                     activityDetail.put(FireBaseKey.Kcal, Utilities.getValueFloat(stepDataList.get(i).getCal()));
                     activityDetail.put(FireBaseKey.Distance, Utilities.getValueFloat(stepDataList.get(i).getDistance()));
+                    activityDetail.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                     if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
                         db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                 document(Utilities.MacAddress)
@@ -777,6 +781,7 @@ public class MainActivity extends BaseActivity {
                 if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
                     Map<String, Object> TempMap = new HashMap<>();
                     TempMap.put(FireBaseKey.Values, Utilities.getValueFloat(binding.tvAvgTemp.getText().toString()));
+                    TempMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                     db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                             document(Utilities.MacAddress)
                             .collection(FireBaseKey.FIREBASE_Temperature)
@@ -800,6 +805,7 @@ public class MainActivity extends BaseActivity {
                             Log.e("sleepList",sleepList.size()+" ");
                             Map<String, Object> SleepMap = new HashMap<>();
                             SleepMap.put(FireBaseKey.Values,sleepList.get(i).getValue());
+                            SleepMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                             db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                     document(Utilities.MacAddress)
                                     .collection(FireBaseKey.FIREBASE_SleepQuality)
@@ -811,7 +817,6 @@ public class MainActivity extends BaseActivity {
                     e.printStackTrace();
                     disMissProgressDialog();
                 }
-
     }
 
     private void getStaticHeartHistoryData(byte mode) {

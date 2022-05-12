@@ -15,6 +15,8 @@ public class FireBaseKey {
     public static String FIREBASE_ECG_PPG="ECG";
     public static String FIREBASE_ECG_Report="ECGReport";
     public static String FIREBASE_ECG_ReportCsv="ECGReportCsv";
+    public static String FIREBASE_OS="Os";
+    public static String ANDROID="ANDROID";
 
     public static String FIREBASE_HRV="Hrv";
     public static String FIREBASE_Temperature="Temperature";

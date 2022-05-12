@@ -157,12 +157,17 @@ public class Utilities {
         String formattedDate = df.format(c.getTime());
         return formattedDate;
     }
-    public static String getFIleCreateDate() {
-        Calendar c = Calendar.getInstance();
-        System.out.println("Current time => " + c.getTime());
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
-        String formattedDate = df.format(c.getTime());
-        return formattedDate;
+    public static String getFIleCreateDate(String lastReadingTime) {
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat displayFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String str = null;
+        try {
+            Date date = parseFormat.parse(lastReadingTime);
+            str = displayFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return str;
     }
     public  static int getValueInt(String s){
         try {
@@ -180,6 +185,7 @@ public class Utilities {
     }
     public static String getDeciveDate(String time){
         SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        SimpleDateFormat parse2Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         SimpleDateFormat displayFormat = new SimpleDateFormat("dd-MM-yyyy");
         String str = null;
         try {
@@ -187,11 +193,18 @@ public class Utilities {
             str = displayFormat.format(date);
         } catch (ParseException e) {
             e.printStackTrace();
+           try {
+               Date date = parse2Format.parse(time);
+               str = displayFormat.format(date);
+           }catch (ParseException exception){
+               e.printStackTrace();
+           }
         }
         return str;
     }
     public static String getDeciveTime(String time){
         SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        SimpleDateFormat parse2Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm:ss");
         String str = null;
         try {
@@ -199,6 +212,12 @@ public class Utilities {
             str = displayFormat.format(date);
         } catch (ParseException e) {
             e.printStackTrace();
+            try {
+                Date date = parse2Format.parse(time);
+                str = displayFormat.format(date);
+            }catch (ParseException exception){
+                e.printStackTrace();
+            }
         }
         return str;
     }
