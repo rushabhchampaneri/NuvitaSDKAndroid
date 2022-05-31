@@ -16,6 +16,7 @@ import com.ble.healthmonitoringapp.ble.BleManager;
 import com.ble.healthmonitoringapp.ble.BleService;
 import com.ble.healthmonitoringapp.databinding.ActivityMainBinding;
 import com.ble.healthmonitoringapp.model.EcgHistoryData;
+import com.ble.healthmonitoringapp.model.TempModel;
 import com.ble.healthmonitoringapp.utils.AppMethods;
 import com.ble.healthmonitoringapp.utils.BleData;
 import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
@@ -26,8 +27,10 @@ import com.ble.healthmonitoringapp.utils.RxBus;
 import com.ble.healthmonitoringapp.model.StepDetailData;
 import com.ble.healthmonitoringapp.utils.Utilities;
 import com.ble.healthmonitoringapp.model.ValuesModel;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+import com.google.gson.Gson;
 import com.jstyle.blesdk2025.Util.BleSDK;
 import com.jstyle.blesdk2025.constant.BleConst;
 import com.jstyle.blesdk2025.constant.DeviceKey;
@@ -35,11 +38,14 @@ import com.jstyle.blesdk2025.model.MyAutomaticHRMonitoring;
 import com.jstyle.blesdk2025.model.MyDeviceTime;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -388,9 +394,6 @@ public class MainActivity extends BaseActivity {
                     String distance = maps.get(DeviceKey.Distance);
                     String heart = maps.get(DeviceKey.HeartRate);
                     String TEMP = maps.get(DeviceKey.TempData);
-                    binding.tvAvgTemp.setText(TEMP + "");
-                    binding.tvMaxTemp.setText(TEMP + "");
-                    binding.tvMinTemp.setText(TEMP + "");
                     binding.tvKCal.setText(cal);
                     binding.tvStep.setText(step);
                     binding.tvDistanceKm.setText(distance);
@@ -632,6 +635,7 @@ public class MainActivity extends BaseActivity {
         so2List.clear();
         sleepList.clear();
         stepDataList.clear();
+        Templist.clear();
         list.clear();
         listSo2.clear();
         listHeart.clear();
@@ -676,7 +680,9 @@ public class MainActivity extends BaseActivity {
 
         @Override
         protected String doInBackground(Void... params) {
-            dataUpload();
+            if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                dataUpload();
+            }
             return "Executed";
         }
 
@@ -693,20 +699,177 @@ public class MainActivity extends BaseActivity {
     }
 
     private void dataUpload() {
-     FirebaseFirestore   db = FirebaseFirestore.getInstance();
-     for (int i = 0; i < heartList.size(); i++) {
-                    Map<String, Object> HeartMap = new HashMap<>();
-                    HeartMap.put(FireBaseKey.Values, heartList.get(i).getValue());
-                    HeartMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
-                    if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+        FirebaseFirestore   db = FirebaseFirestore.getInstance();
+        if(heartList.size()!=0) {
+            Map<String, Object> hh = new HashMap<>();
+            String dateMatch = Utilities.getDeciveDate(heartList.get(0).getDate());
+            for (int i = 0; i < heartList.size(); i++) {
+                Map<String, Object> HeartMap = new HashMap<>();
+                HeartMap.put(FireBaseKey.Values, heartList.get(i).getValue());
+                HeartMap.put(FireBaseKey.FIREBASE_OS, FireBaseKey.ANDROID);
+                hh.put(Utilities.getDeciveTime(heartList.get(i).getDate()),HeartMap);
+                if (!dateMatch.equals(Utilities.getDeciveDate(heartList.get(i).getDate()))) {
+                    dateMatch = Utilities.getDeciveDate(heartList.get(i).getDate());
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME)
+                            .document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_HeartRate)
+                            .document(Utilities.getDeciveDate(heartList.get(i - 1).getDate()))
+                            .set(hh,SetOptions.merge());
+                    hh.clear();
+                }
+            }
+        }
+        if(so2List.size()!=0){
+            Map<String, Object> hashMap = new HashMap<>();
+            String dateMatch = Utilities.getDeciveDate(so2List.get(0).getDate());
+            for (int i = 0; i < so2List.size(); i++) {
+                Map<String, Object> so2Map = new HashMap<>();
+                so2Map.put(FireBaseKey.Values, so2List.get(i).getValue());
+                so2Map.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
+                hashMap.put(Utilities.getDeciveTime(so2List.get(i).getDate()),so2Map);
+                if (!dateMatch.equals(Utilities.getDeciveDate(so2List.get(i).getDate()))) {
+                    dateMatch = Utilities.getDeciveDate(so2List.get(i).getDate());
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME)
+                            .document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_SPO2)
+                            .document(Utilities.getDeciveDate(so2List.get(i - 1).getDate()))
+                            .set(hashMap,SetOptions.merge());
+                    hashMap.clear();
+                }
+            }
+        }
+        if(stepDataList.size()!=0){
+            Map<String, Object> hashMap = new HashMap<>();
+            String dateMatch = Utilities.getDeciveDate(stepDataList.get(0).getDate());
+            for (int i = 0; i < stepDataList.size(); i++) {
+                Map<String, Object> activityDetail = new HashMap<>();
+                activityDetail.put(FireBaseKey.Step, Utilities.getValueInt(stepDataList.get(i).getStep()));
+                activityDetail.put(FireBaseKey.Kcal, Utilities.getValueFloat(stepDataList.get(i).getCal()));
+                activityDetail.put(FireBaseKey.Distance, Utilities.getValueFloat(stepDataList.get(i).getDistance()));
+                activityDetail.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
+                hashMap.put(Utilities.getDeciveTime(stepDataList.get(i).getDate()),activityDetail);
+                if (!dateMatch.equals( Utilities.getDeciveDate(stepDataList.get(i).getDate()))) {
+                    dateMatch=Utilities.getDeciveDate(stepDataList.get(i).getDate());
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                            document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_ActivityDetail)
+                            .document(Utilities.getDeciveDate(stepDataList.get(i-1).getDate()))
+                            .set(hashMap, SetOptions.merge());
+                    hashMap.clear();
+                }
+            }
+        }
+        if(Templist.size()!=0){
+            Map<String, Object> hashMap = new HashMap<>();
+            String dateMatch = Utilities.getDeciveDate(Templist.get(0).getDate());
+            for (int i = 0; i < Templist.size(); i++) {
+                Map<String, Object> TempMap = new HashMap<>();
+                TempMap.put(FireBaseKey.Values,Templist.get(i).getValue());
+                TempMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
+                hashMap.put(Utilities.getDeciveTime(Templist.get(i).getDate()),TempMap);
+                if (!dateMatch.equals( Utilities.getDeciveDate(Templist.get(i).getDate()))) {
+                    dateMatch=Utilities.getDeciveDate(Templist.get(i).getDate());
+                    db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                            document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_Temperature)
+                            .document(Utilities.getDeciveDate(Templist.get(i-1).getDate()))
+                            .set(hashMap,SetOptions.merge());
+                  hashMap.clear();
+                }
+            }
+        }
+        if(hrvList.size()!=0){
+            Map<String, Object> hashMap = new HashMap<>();
+            Map<String, Object> stressMap = new HashMap<>();
+            Map<String, Object> bpMap = new HashMap<>();
+
+            String dateMatch = Utilities.getDeciveDate(hrvList.get(0).getDate());
+            String dateStress = Utilities.getDeciveDate(hrvList.get(0).getDate());
+            String dateBp = Utilities.getDeciveDate(hrvList.get(0).getDate());
+
+            for (int i = 0; i < hrvList.size(); i++) {
+                if (hrvList.get(i).getHrv() != 0) {
+                    Map<String, Object> HrvMap = new HashMap<>();
+                    HrvMap.put(FireBaseKey.Values, hrvList.get(i).getHrv());
+                    HrvMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
+                    hashMap.put(Utilities.getDeciveTime(hrvList.get(i).getDate()),HrvMap);
+                    if (!dateMatch.equals(Utilities.getDeciveDate(hrvList.get(i).getDate()))) {
+                        dateMatch = Utilities.getDeciveDate(hrvList.get(i).getDate());
                         db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                document(Utilities.MacAddress)
+                                .collection(FireBaseKey.FIREBASE_HRV)
+                                .document(Utilities.getDeciveDate(hrvList.get(i-1).getDate()))
+                                .set(hashMap,SetOptions.merge());
+                        hashMap.clear();
+                    }
+                }
+                if (hrvList.get(i).getStress() != 0) {
+                    Map<String, Object> StressMap = new HashMap<>();
+                    StressMap.put(FireBaseKey.Values, hrvList.get(i).getStress());
+                    StressMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
+                    stressMap.put(Utilities.getDeciveTime(hrvList.get(i).getDate()),StressMap);
+                    if (!dateStress.equals(Utilities.getDeciveDate(hrvList.get(i).getDate()))) {
+                        dateStress=Utilities.getDeciveDate(hrvList.get(i).getDate());
+                        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                document(Utilities.MacAddress)
+                                .collection(FireBaseKey.FIREBASE_Stress)
+                                .document(Utilities.getDeciveDate(hrvList.get(i-1).getDate()))
+                                .set(stressMap, SetOptions.merge());
+                        stressMap.clear();
+                    }
+                }
+                if (hrvList.get(i).getHighBp() != 0) {
+                    Map<String, Object> BloodPress = new HashMap<>();
+                    BloodPress.put(FireBaseKey.Values, hrvList.get(i).getHighBp() + "/" + hrvList.get(i).getLowBp());
+                    BloodPress.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
+                    bpMap.put(Utilities.getDeciveTime(hrvList.get(i).getDate()),BloodPress);
+                    if(!dateBp.equals(Utilities.getDeciveDate(hrvList.get(i).getDate()))){
+                        dateBp=Utilities.getDeciveDate(hrvList.get(i).getDate());
+                        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                                document(Utilities.MacAddress)
+                                .collection(FireBaseKey.FIREBASE_Blood_pressure)
+                                .document(Utilities.getDeciveDate(hrvList.get(i-1).getDate()))
+                                .set(bpMap);
+                        bpMap.clear();
+                    }
+                }
+            }
+        }
+        if(sleepList.size()!=0){
+            try {
+                Map<String, Object> hashMap = new HashMap<>();
+                String dateMatch = Utilities.getDeciveDate(sleepList.get(0).getDate());
+                for (int i=0;i<sleepList.size();i++) {
+                    Map<String, Object> SleepMap = new HashMap<>();
+                    SleepMap.put(FireBaseKey.Values, sleepList.get(i).getValue());
+                    SleepMap.put(FireBaseKey.FIREBASE_OS, FireBaseKey.ANDROID);
+                    hashMap.put(Utilities.getDeciveTime(sleepList.get(i).getDate()), SleepMap);
+                    if (!dateMatch.equals( Utilities.getDeciveDate(sleepList.get(i).getDate()))) {
+                        dateMatch=Utilities.getDeciveDate(sleepList.get(i).getDate());
+                        db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                            document(Utilities.MacAddress)
+                            .collection(FireBaseKey.FIREBASE_SleepQuality)
+                            .document(Utilities.getDeciveDate(sleepList.get(i-1).getDate()))
+                            .set(hashMap, SetOptions.merge());
+                       hashMap.clear();
+                }
+             }
+            }catch (Exception e){
+                e.printStackTrace();
+                disMissProgressDialog();
+            }
+        }
+
+
+                        /*db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                                 document(Utilities.MacAddress)
                                 .collection(FireBaseKey.FIREBASE_HeartRate)
                                 .document(Utilities.getDeciveDate(heartList.get(i).getDate()))
-                                .set(Utilities.getTimeHashmap(HeartMap, Utilities.getDeciveTime(heartList.get(i).getDate())), SetOptions.merge());
-                    }
-                }
-                for (int i = 0; i < so2List.size(); i++) {
+                                .set(Utilities.getTimeHashmap(HeartMap, Utilities.getDeciveTime(heartList.get(i).getDate())), SetOptions.merge());*/
+
+
+
+               /* for (int i = 0; i < so2List.size(); i++) {
                     Map<String, Object> so2Map = new HashMap<>();
                     so2Map.put(FireBaseKey.Values, so2List.get(i).getValue());
                     so2Map.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
@@ -779,26 +942,17 @@ public class MainActivity extends BaseActivity {
                     }
                 }
                 if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
-                    Map<String, Object> TempMap = new HashMap<>();
-                    TempMap.put(FireBaseKey.Values, Utilities.getValueFloat(binding.tvAvgTemp.getText().toString()));
+                    for (int i = 0; i < Templist.size(); i++) {
+                        Map<String, Object> TempMap = new HashMap<>();
+                    TempMap.put(FireBaseKey.Values,Templist.get(i).getValue());
                     TempMap.put(FireBaseKey.FIREBASE_OS,FireBaseKey.ANDROID);
                     db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
                             document(Utilities.MacAddress)
                             .collection(FireBaseKey.FIREBASE_Temperature)
-                            .document(Utilities.getCurrentDate())
-                            .set(Utilities.getTimeHashmap(TempMap), SetOptions.merge());
+                            .document(Utilities.getDeciveDate(Templist.get(i).getDate()))
+                            .set(Utilities.getTimeHashmap(TempMap,Utilities.getDeciveTime(Templist.get(i).getDate())), SetOptions.merge());
+                 }
                 }
-        /*if (CheckSelfPermission.isNetworkConnected(this)) {
-            Map<String, Object> EcgMap = new HashMap<>();
-            EcgMap.put(FireBaseKey.HrvEcg, Utilities.getValueInt(binding.tvHrvEcg.getText().toString()));
-            EcgMap.put(FireBaseKey.HrEcg, Utilities.getValueInt(binding.tvAvgHrvEcg.getText().toString()));
-            EcgMap.put(FireBaseKey.Mood,mood);
-            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
-                    document(Utilities.MacAddress)
-                    .collection(FireBaseKey.FIREBASE_ECG_PPG)
-                    .document(Utilities.getCurrentDate())
-                    .set(Utilities.getTimeHashmap(EcgMap), SetOptions.merge());
-        }*/
                 try {
                     for (int i=0;i<sleepList.size();i++){
                         if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
@@ -816,7 +970,18 @@ public class MainActivity extends BaseActivity {
                 }catch (Exception e){
                     e.printStackTrace();
                     disMissProgressDialog();
-                }
+                }*/
+                 /*if (CheckSelfPermission.isNetworkConnected(this)) {
+            Map<String, Object> EcgMap = new HashMap<>();
+            EcgMap.put(FireBaseKey.HrvEcg, Utilities.getValueInt(binding.tvHrvEcg.getText().toString()));
+            EcgMap.put(FireBaseKey.HrEcg, Utilities.getValueInt(binding.tvAvgHrvEcg.getText().toString()));
+            EcgMap.put(FireBaseKey.Mood,mood);
+            db.collection(FireBaseKey.FIREBASE_COLLECTION_NAME).
+                    document(Utilities.MacAddress)
+                    .collection(FireBaseKey.FIREBASE_ECG_PPG)
+                    .document(Utilities.getCurrentDate())
+                    .set(Utilities.getTimeHashmap(EcgMap), SetOptions.merge());
+        }*/
     }
 
     private void getStaticHeartHistoryData(byte mode) {
@@ -845,7 +1010,6 @@ public class MainActivity extends BaseActivity {
     private void getTempData(byte mode) {
         sendValue(BleSDK.GetTemperature_historyDataWithMode(mode,""));
     }
-
     private void getSO2Data(byte mode) {
         sendValue(BleSDK.GetBloodOxygen(mode,""));
     }
@@ -869,22 +1033,26 @@ public class MainActivity extends BaseActivity {
 //        automicHeart.setOpen(1);
 //        sendValue(BleSDK.SetAutomaticHRMonitoring(automicHeart));
 //    }
+ArrayList<TempModel> Templist = new ArrayList<>();
 
     private void saveTemp() {
-
         try {
             double avg = 0;
             int count = 0;
-            ArrayList<Float> Templist = new ArrayList<>();
+            ArrayList<Float> tempList = new ArrayList<>();
             for (Map<String, String> map : listTemp) {
                 float temp = Utilities.getValueFloat(map.get(DeviceKey.temperature));
-                Templist.add(temp);
+                String time = map.get(DeviceKey.Date);
+                Templist.add(new TempModel(temp,time));
+                tempList.add(temp);
                 avg += temp;
                 count += 1;
             }
+            binding.tvAvgTemp.setText(Math.round(avg / count)  + "");
+            binding.tvMaxTemp.setText(Collections.max(tempList) + "");
+            binding.tvMinTemp.setText(Collections.min(tempList) + "");
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }
