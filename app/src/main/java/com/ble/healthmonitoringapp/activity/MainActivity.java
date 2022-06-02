@@ -1043,10 +1043,12 @@ ArrayList<TempModel> Templist = new ArrayList<>();
             for (Map<String, String> map : listTemp) {
                 float temp = Utilities.getValueFloat(map.get(DeviceKey.temperature));
                 String time = map.get(DeviceKey.Date);
-                Templist.add(new TempModel(temp,time));
-                tempList.add(temp);
-                avg += temp;
-                count += 1;
+                if(temp>0){
+                    Templist.add(new TempModel(temp,time));
+                    tempList.add(temp);
+                    avg += temp;
+                    count += 1;
+                }
             }
             binding.tvAvgTemp.setText(Math.round(avg / count)  + "");
             binding.tvMaxTemp.setText(Collections.max(tempList) + "");
