@@ -34,6 +34,7 @@ import com.google.gson.Gson;
 import com.jstyle.blesdk2025.Util.BleSDK;
 import com.jstyle.blesdk2025.constant.BleConst;
 import com.jstyle.blesdk2025.constant.DeviceKey;
+import com.jstyle.blesdk2025.model.AutoMode;
 import com.jstyle.blesdk2025.model.MyAutomaticHRMonitoring;
 import com.jstyle.blesdk2025.model.MyDeviceTime;
 
@@ -104,7 +105,6 @@ public class MainActivity extends BaseActivity {
                 }
             }
         });
-
     }
 
     private void syncData() {
@@ -214,7 +214,7 @@ public class MainActivity extends BaseActivity {
     public void dataCallback(Map<String, Object> map) {
         super.dataCallback(map);
         String dataType = getDataType(map);
-      // Log.e("dataCallback :-","data-- "+map.toString());
+       Log.e("dataCallback :-","data-- "+map.toString());
         switch (dataType) {
             case BleConst.SetDeviceTime:
                 sendValue(BleSDK.GetDeviceTime());
@@ -226,7 +226,6 @@ public class MainActivity extends BaseActivity {
             case BleConst.GetDeviceBatteryLevel:
                 Map<String, String> data = getData(map);
                 String battery = data.get(DeviceKey.BatteryLevel);
-                getStaticHeartHistoryData(ModeStart);
                 try {
                     int batteryLevel = Integer.parseInt(battery);
                     if (batteryLevel >= 0 && batteryLevel <= 10) {
@@ -252,6 +251,7 @@ public class MainActivity extends BaseActivity {
                     } else {
                         binding.ivBattery.setImageResource(R.drawable.b_100);
                     }
+                    setAutoTimeDevice();
                 } catch (Exception e) {
                     e.printStackTrace();
                     // Toast.makeText(MainActivity.this,"Real Time Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
@@ -298,7 +298,7 @@ public class MainActivity extends BaseActivity {
                             getTempData(ModeStart);
                             saveHrvData();
                         } else {
-                            //  getHrvData(ModeContinue);
+                              getHrvData(ModeContinue);
                         }
                     }
                 } catch (Exception e) {
@@ -308,7 +308,6 @@ public class MainActivity extends BaseActivity {
                 break;
             case BleConst.Temperature_history:
                 try {
-                    Log.e("listTemp", map.toString());
                     //showToast(map.toString()+" ---");
                     listTemp.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
                     dataCount++;
@@ -323,10 +322,9 @@ public class MainActivity extends BaseActivity {
                         dataCount = 0;
                         if (getends) {
                             getSO2Data(ModeStart);
-                            //   Toast.makeText(MainActivity.this,"Temp Start " +map.toString(),Toast.LENGTH_SHORT).show();
                             saveTemp();
                         } else {
-                            //  getTempData(ModeContinue);
+                              getTempData(ModeContinue);
                         }
                     }
                 } catch (Exception e) {
@@ -344,13 +342,12 @@ public class MainActivity extends BaseActivity {
                         getDetailData(ModeStart);
                     }
                     if (dataCount == 50) {
-                        Log.e("sdadaa", "sssssssssssssssssssss");
                         dataCount = 0;
                         if (getSo2ends) {
                             saveS02();
                             getDetailData(ModeStart);
                         } else {
-                            //  getSO2Data(ModeContinue);
+                              getSO2Data(ModeContinue);
                         }
                     }
                 } catch (Exception e) {
@@ -382,7 +379,7 @@ public class MainActivity extends BaseActivity {
                         //  disMissProgressDialog();
                         // detailDataAdapter.setData(list,DetailDataAdapter.GET_STEP_DETAIL);
                     } else {
-                        //  getDetailData(ModeContinue);
+                          getDetailData(ModeContinue);
                     }
                 }
                 break;
@@ -417,7 +414,7 @@ public class MainActivity extends BaseActivity {
                         if (finish) {
                             saveSleepData();
                         } else {
-                          //  getSleepData(ModeContinue);
+                            getSleepData(ModeContinue);
                         }
                     }
                 }catch (Exception e){
@@ -1014,6 +1011,22 @@ public class MainActivity extends BaseActivity {
         sendValue(BleSDK.GetBloodOxygen(mode,""));
     }
 
+
+    private void setAutoTimeDevice(){
+        try {
+            sendValue(BleSDK.SetAutomatic(true,1,AutoMode.AutoHrv));
+            Thread.sleep(100);
+            sendValue(BleSDK.SetAutomatic(true,1,AutoMode.AutoSpo2));
+            Thread.sleep(100);
+            sendValue(BleSDK.SetAutomatic(true,1,AutoMode.AutoHeartRate));
+            Thread.sleep(100);
+            sendValue(BleSDK.SetAutomatic(true,1,AutoMode.AutoTemp));
+            Thread.sleep(100);
+            getStaticHeartHistoryData(ModeStart);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 //    private void setActivityTimeAlarm() {
 //        // TODO Auto-generated method stub
 //        int hourStart = timePickerStart.getCurrentHour();
