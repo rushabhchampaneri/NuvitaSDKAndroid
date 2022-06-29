@@ -81,6 +81,7 @@ public class MainActivity extends BaseActivity {
         syncData();
         InitUI();
         setOnClickListener();
+
     }
     private void InitUI() {
         binding.tvDeviceName.setText(Utilities.DeviceName);
@@ -331,7 +332,8 @@ public class MainActivity extends BaseActivity {
                     e.printStackTrace();
                 }
                 break;
-            case BleConst.Blood_oxygen:
+            case BleConst.GetAutomaticSpo2Monitoring:
+          //  case BleConst.Blood_oxygen:
                 try {
                     listSo2.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
                     dataCount++;
@@ -347,7 +349,7 @@ public class MainActivity extends BaseActivity {
                             saveS02();
                             getDetailData(ModeStart);
                         } else {
-                              getSO2Data(ModeContinue);
+                            //getSO2Data(ModeContinue);
                         }
                     }
                 } catch (Exception e) {
@@ -1008,7 +1010,9 @@ public class MainActivity extends BaseActivity {
         sendValue(BleSDK.GetTemperature_historyDataWithMode(mode,""));
     }
     private void getSO2Data(byte mode) {
-        sendValue(BleSDK.GetBloodOxygen(mode,""));
+
+        sendValue(BleSDK.Obtain_The_data_of_manual_blood_oxygen_test(mode));
+     //   sendValue(BleSDK.GetBloodOxygen(mode,""));
     }
 
 
