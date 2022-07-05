@@ -307,7 +307,8 @@ public class MainActivity extends BaseActivity {
                     //  Toast.makeText(MainActivity.this,"HRV Start Crash" +e.getMessage(),Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case BleConst.Temperature_history:
+            case BleConst.GetAxillaryTemperatureDataWithMode:
+           // case BleConst.Temperature_history:
                 try {
                     //showToast(map.toString()+" ---");
                     listTemp.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
@@ -332,7 +333,7 @@ public class MainActivity extends BaseActivity {
                     e.printStackTrace();
                 }
                 break;
-            case BleConst.GetAutomaticSpo2Monitoring:
+          case BleConst.GetAutomaticSpo2Monitoring:
           //  case BleConst.Blood_oxygen:
                 try {
                     listSo2.addAll((List<Map<String, String>>) map.get(DeviceKey.Data));
@@ -385,6 +386,7 @@ public class MainActivity extends BaseActivity {
                     }
                 }
                 break;
+
             case BleConst.RealTimeStep:
                 try {
                     Map<String, String> maps = getData(map);
@@ -506,12 +508,16 @@ public class MainActivity extends BaseActivity {
                 String distance = map.get(DeviceKey.Distance);
                 String cal = map.get(DeviceKey.Calories);
                 String detailStep = map.get(DeviceKey.ArraySteps);
-                stepData.setDate(date);
-                stepData.setStep(totalStep);
-                stepData.setDistance(distance);
-                stepData.setCal(cal);
-                stepData.setMinterStep(detailStep);
-                stepDataList.add(stepData);
+                String dateMatch = Utilities.getDeciveDate(date);
+                String deviceTime= Utilities.getDeciveTime(date);
+                if(dateMatch!=null &&deviceTime!=null) {
+                    stepData.setDate(date);
+                    stepData.setStep(totalStep);
+                    stepData.setDistance(distance);
+                    stepData.setCal(cal);
+                    stepData.setMinterStep(detailStep);
+                    stepDataList.add(stepData);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -526,11 +532,15 @@ public class MainActivity extends BaseActivity {
             for (Map<String, String> map : listSo2) {
                 int s02 = Utilities.getValueInt(map.get(DeviceKey.Blood_oxygen));
                 String time = map.get(DeviceKey.Date);
-                binding.tvBloodOxy.setText(listSo2.get(0).get(DeviceKey.Blood_oxygen) + "%");
-                so2List.add(new ValuesModel(s02, time));
-                so2IntList.add(s02);
-                avg += s02;
-                count += 1;
+                String dateMatch = Utilities.getDeciveDate(time);
+                String deviceTime= Utilities.getDeciveTime(time);
+                if(dateMatch!=null &&deviceTime!=null) {
+                    binding.tvBloodOxy.setText(listSo2.get(0).get(DeviceKey.Blood_oxygen) + "%");
+                    so2List.add(new ValuesModel(s02, time));
+                    so2IntList.add(s02);
+                    avg += s02;
+                    count += 1;
+                }
             }
             binding.tvMaxOxygen.setText(Collections.max(so2IntList) + "%");
             binding.tvMinOxygen.setText(Collections.min(so2IntList) + "%");
@@ -556,13 +566,17 @@ public class MainActivity extends BaseActivity {
                 int Stress = Utilities.getValueInt(map.get(DeviceKey.Stress));
                 int hrv = Utilities.getValueInt(map.get(DeviceKey.HRV));
                 String time = map.get(DeviceKey.Date);
-                hrvIntList.add(hrv);
-                stressList.add(Stress);
-                hrvList.add(new HrvModel(hrv, Stress, lowBp, HighBp, time));
-                binding.tvBloodPressure.setText(HighBp + "/" + lowBp + " mmHg");
-                avgStress += Stress;
-                avg += hrv;
-                count += 1;
+                String dateMatch = Utilities.getDeciveDate(time);
+                String deviceTime= Utilities.getDeciveTime(time);
+                if(dateMatch!=null &&deviceTime!=null) {
+                    hrvIntList.add(hrv);
+                    stressList.add(Stress);
+                    hrvList.add(new HrvModel(hrv, Stress, lowBp, HighBp, time));
+                    binding.tvBloodPressure.setText(HighBp + "/" + lowBp + " mmHg");
+                    avgStress += Stress;
+                    avg += hrv;
+                    count += 1;
+                }
             }
             binding.tvAvgStress.setText((avgStress / count) + "");
             binding.tvMaxStress.setText(Collections.max(stressList) + "");
@@ -586,12 +600,16 @@ public class MainActivity extends BaseActivity {
             for (Map<String, String> map : listSleep) {
                 String time = map.get(DeviceKey.Date);
                 String[] sleepQuantity = map.get(DeviceKey.ArraySleep).split(" ");
-                int SleepQuantity = 0;
-                for (int i = 0; i < sleepQuantity.length; i++) {
-                    SleepQuantity += Utilities.getValueInt(sleepQuantity[i]);
-                    Sleep+=SleepQuantity;
+                String dateMatch = Utilities.getDeciveDate(time);
+                String deviceTime= Utilities.getDeciveTime(time);
+                if(dateMatch!=null &&deviceTime!=null) {
+                    int SleepQuantity = 0;
+                    for (int i = 0; i < sleepQuantity.length; i++) {
+                        SleepQuantity += Utilities.getValueInt(sleepQuantity[i]);
+                        Sleep+=SleepQuantity;
+                    }
+                    sleepList.add(new ValuesModel(SleepQuantity, time));
                 }
-                sleepList.add(new ValuesModel(SleepQuantity,time));
             }
             binding.tvSleepQuality.setText(String.valueOf(Sleep));
         } catch (Exception e) {
@@ -611,10 +629,14 @@ public class MainActivity extends BaseActivity {
                 String time = map.get(DeviceKey.Date);
                 int hr = Utilities.getValueInt(hrString);
                 if (hr != 0) {
-                    heartList.add(new HeartRateModel(hr, time));
-                    heartIntList.add(hr);
-                    avg += hr;
-                    count += 1;
+                    String dateMatch = Utilities.getDeciveDate(time);
+                    String deviceTime= Utilities.getDeciveTime(time);
+                    if(dateMatch!=null &&deviceTime!=null){
+                        heartList.add(new HeartRateModel(hr, time));
+                        heartIntList.add(hr);
+                        avg += hr;
+                        count += 1;
+                    }
                 }
             }
             Log.e("vvvv",heartIntList.size()+" "+heartList.size());
@@ -679,8 +701,13 @@ public class MainActivity extends BaseActivity {
 
         @Override
         protected String doInBackground(Void... params) {
-            if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
-                dataUpload();
+            try {
+                if (CheckSelfPermission.isNetworkConnected(MainActivity.this)) {
+                    dataUpload();
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                Log.e("dataUpload","data Parsing error"+e.getMessage());
             }
             return "Executed";
         }
@@ -1007,7 +1034,8 @@ public class MainActivity extends BaseActivity {
     }
 
     private void getTempData(byte mode) {
-        sendValue(BleSDK.GetTemperature_historyDataWithMode(mode,""));
+     //   sendValue(BleSDK.GetTemperature_historyDataWithMode(mode,""));
+        sendValue(BleSDK.GetAxillaryTemperatureDataWithMode(mode,""));
     }
     private void getSO2Data(byte mode) {
 
@@ -1058,7 +1086,8 @@ ArrayList<TempModel> Templist = new ArrayList<>();
             int count = 0;
             ArrayList<Float> tempList = new ArrayList<>();
             for (Map<String, String> map : listTemp) {
-                float temp = Utilities.getValueFloat(map.get(DeviceKey.temperature));
+              //  float temp = Utilities.getValueFloat(map.get(DeviceKey.temperature));
+                float temp=Utilities.getValueFloat(map.get(DeviceKey.axillaryTemperature));
                 String time = map.get(DeviceKey.Date);
                 if(temp>0){
                     Templist.add(new TempModel(temp,time));
