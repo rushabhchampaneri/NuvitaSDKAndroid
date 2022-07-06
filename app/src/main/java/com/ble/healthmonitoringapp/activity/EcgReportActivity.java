@@ -37,6 +37,7 @@ import com.ble.healthmonitoringapp.databinding.ActivityEcgReportBinding;
 import com.ble.healthmonitoringapp.model.EcgHistoryData;
 import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
 import com.ble.healthmonitoringapp.utils.FireBaseKey;
+import com.ble.healthmonitoringapp.utils.LocaleHelper;
 import com.ble.healthmonitoringapp.utils.PDFCreate;
 import com.ble.healthmonitoringapp.utils.SchedulersTransformer;
 import com.ble.healthmonitoringapp.utils.Utilities;
@@ -87,6 +88,10 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
 public class EcgReportActivity extends AppCompatActivity {
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
     private ActivityEcgReportBinding binding;
     private Disposable disposablePdf;
     ArrayList<EcgHistoryData> ecgHistoryDataArrayList =new ArrayList<>();

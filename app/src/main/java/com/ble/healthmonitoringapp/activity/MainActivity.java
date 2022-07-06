@@ -2,6 +2,7 @@ package com.ble.healthmonitoringapp.activity;
 
 import androidx.databinding.DataBindingUtil;
 
+import android.content.Context;
 import android.content.Intent;
 import android.icu.util.Calendar;
 import android.os.AsyncTask;
@@ -23,6 +24,7 @@ import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
 import com.ble.healthmonitoringapp.utils.FireBaseKey;
 import com.ble.healthmonitoringapp.model.HeartRateModel;
 import com.ble.healthmonitoringapp.model.HrvModel;
+import com.ble.healthmonitoringapp.utils.LocaleHelper;
 import com.ble.healthmonitoringapp.utils.RxBus;
 import com.ble.healthmonitoringapp.model.StepDetailData;
 import com.ble.healthmonitoringapp.utils.Utilities;
@@ -54,7 +56,10 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends BaseActivity {
-
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
     ActivityMainBinding binding;
     private Disposable subscription;
     byte ModeStart = 0;

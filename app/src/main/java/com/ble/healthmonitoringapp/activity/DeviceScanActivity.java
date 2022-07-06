@@ -25,6 +25,7 @@ import com.ble.healthmonitoringapp.dialog.ConnectDeviceDialog;
 import com.ble.healthmonitoringapp.dialog.devicesDialog;
 import com.ble.healthmonitoringapp.utils.BleData;
 import com.ble.healthmonitoringapp.utils.CheckSelfPermission;
+import com.ble.healthmonitoringapp.utils.LocaleHelper;
 import com.ble.healthmonitoringapp.utils.ResolveData;
 import com.ble.healthmonitoringapp.utils.RxBus;
 import com.ble.healthmonitoringapp.utils.Utilities;
@@ -125,7 +126,10 @@ public class DeviceScanActivity extends AppCompatActivity {
         }
         return false;
     }
-
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
     private boolean checkLocationPermission(){
         if (isFirstLocationPermission){
             isFirstLocationPermission = false;

@@ -4,6 +4,8 @@ import static com.ble.healthmonitoringapp.utils.AppConstants.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,6 +13,7 @@ import android.util.Log;
 
 import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.utils.FireBaseKey;
+import com.ble.healthmonitoringapp.utils.LocaleHelper;
 import com.ble.healthmonitoringapp.utils.Utilities;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -24,9 +27,15 @@ import java.util.Map;
 
 public class SplashActivity extends AppCompatActivity {
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        LocaleHelper.setLocale(this, "en");
      //   FirebaseFirestore   db=FirebaseFirestore.getInstance();
 
        /* HashMap<String, Object> FolderMap = new HashMap<>();

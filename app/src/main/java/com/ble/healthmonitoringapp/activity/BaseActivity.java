@@ -2,6 +2,7 @@ package com.ble.healthmonitoringapp.activity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -13,6 +14,7 @@ import com.ble.healthmonitoringapp.R;
 import com.ble.healthmonitoringapp.ble.BleManager;
 import com.ble.healthmonitoringapp.ble.BleService;
 import com.ble.healthmonitoringapp.utils.BleData;
+import com.ble.healthmonitoringapp.utils.LocaleHelper;
 import com.ble.healthmonitoringapp.utils.RxBus;
 import com.jstyle.blesdk2025.Util.BleSDK;
 import com.jstyle.blesdk2025.callback.DataListener2025;
@@ -126,6 +128,10 @@ public  class BaseActivity extends AppCompatActivity implements DataListener2025
     protected void offerData(){
 
         BleManager.getInstance().writeValue();
+    }
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase));
     }
     protected void showProgressDialog(String message){
         if(progressDialog==null){
