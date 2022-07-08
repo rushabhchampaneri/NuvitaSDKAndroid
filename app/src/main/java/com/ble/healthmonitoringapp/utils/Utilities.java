@@ -203,6 +203,92 @@ public class Utilities {
         }
         return str;
     }
+    public static boolean isDeviceYear(String time){
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        SimpleDateFormat parse2Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        int year = 0;
+        try {
+            Date date = parseFormat.parse(time);
+            year = date.getYear();
+        } catch (ParseException e) {
+            e.printStackTrace();
+            try {
+                Date date = parse2Format.parse(time);
+                year = date.getYear();
+            }catch (ParseException exception){
+                e.printStackTrace();
+            }
+        }
+        Date d=new Date();
+        int current= d.getYear();
+        if(current==year|| current-1==year){
+            return true;
+        }else {
+            return false;
+        }
+    }
+    public static boolean isDeviceSleepYear(String time){
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        SimpleDateFormat parse2Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        int year = 0;
+        try {
+            Date date = parse2Format.parse(time);
+            year = date.getYear();
+        } catch (ParseException e) {
+            e.printStackTrace();
+            try {
+                Date date = parseFormat.parse(time);
+                year = date.getYear();
+            }catch (ParseException exception){
+                e.printStackTrace();
+            }
+        }
+        Date d=new Date();
+        int current= d.getYear();
+        if(current==year||current-1==year){
+            return true;
+        }else {
+            return false;
+        }
+    }
+    public static String getSleepDate(String time){
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        SimpleDateFormat parse2Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat displayFormat = new SimpleDateFormat("dd-MM-yyyy");
+        String str = null;
+        try {
+            Date date = parse2Format.parse(time);
+            str = displayFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            try {
+                Date date = parseFormat.parse(time);
+                str = displayFormat.format(date);
+            }catch (ParseException exception){
+                e.printStackTrace();
+            }
+        }
+        return str;
+    }
+    public static String getSleepTime(String time){
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        SimpleDateFormat parse2Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm:ss");
+        String str = null;
+        try {
+            Date date = parse2Format.parse(time);
+            str = displayFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            try {
+                Date date = parseFormat.parse(time);
+                str = displayFormat.format(date);
+            }catch (ParseException exception){
+                e.printStackTrace();
+            }
+        }
+        return str;
+    }
     public static String getDeciveTime(String time){
         SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
         SimpleDateFormat parse2Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

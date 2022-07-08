@@ -18,7 +18,7 @@ public class Myapp extends Application {
         super.onCreate();
         context=this;
         BleManager.init(this);
-        Bugfender.init(this, "Er2ZKW4kHHLY4KPrrWwrHWlwvCY23ghP", BuildConfig.DEBUG);
+        Bugfender.init(this, "FuPxCCtqipbnKs92YVn9aOksbKyROy9d", BuildConfig.DEBUG);
         Bugfender.enableCrashReporting();
         Bugfender.enableUIEventLogging(this);
         Bugfender.enableLogcatLogging();
