@@ -271,7 +271,7 @@ public class EcgReportActivity extends AppCompatActivity {
                 userInfo.setEcgTitle("ECG Report("+Utilities.MacAddress+")");//not null
                 userInfo.setEcgReportTips(" ");//not null
                 createTextFile(ecgData);
-                PDFCreate.createPdf(Path, EcgReportActivity.this, ecgData, userInfo);
+                PDFCreate.createPdf(Path, EcgReportActivity.this, ecgData, userInfo,ecgHistoryDataArrayList.get(ecgHistoryDataArrayList.size()-1).getHeartRate(),ecgHistoryDataArrayList.get(ecgHistoryDataArrayList.size()-1).getHrv());
                 emitter.onComplete();
             }
         }).compose(SchedulersTransformer.applySchedulers()).subscribe(new Observer<Object>() {
@@ -688,4 +688,5 @@ public class EcgReportActivity extends AppCompatActivity {
             }
         });
     }
+
 }

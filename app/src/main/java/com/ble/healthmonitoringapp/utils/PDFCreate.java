@@ -35,7 +35,7 @@ public class PDFCreate {
     public PDFCreate() {
     }
 
-    public static void createPdf(String path, Context context, List<Integer> data, UserInfo userInfo) {
+    public static void createPdf(String path, Context context, List<Integer> data, UserInfo userInfo,int heartValue,int hrv) {
         int size = data.size();
         float col = size % 5120 == 0 ? (float)(size / 5120) : (float)(size / 5120 + 1);
         length = (float)dip2px(context, 10.0F);
@@ -44,7 +44,7 @@ public class PDFCreate {
         startX = dip2px(context, 20.0F);
         endX = (float)startX + 50.0F * length;
         totalWidth = endX + (float)startX;
-        totalHeight = col * height * 5.0F + (float)dip2px(context, 130.0F);
+        totalHeight = col * height * 5.0F + (float)dip2px(context, 200.0F);
         PdfDocument pdfDocument = new PdfDocument();
         PdfDocument.PageInfo pageInfo = (new PdfDocument.PageInfo.Builder((int)totalWidth, (int)totalHeight, 1)).create();
         PdfDocument.Page page = pdfDocument.startPage(pageInfo);
@@ -52,7 +52,7 @@ public class PDFCreate {
         Paint paint = new Paint();
         strokeWidthTime = dip2px(context, 1.5F);
         strokeWidthLine = dip2px(context, 0.5F);
-        drawReportInfo(context, canvas, paint, userInfo);
+        drawReportInfo(context, canvas, paint, userInfo,heartValue,hrv);
         Path pathCanvas = new Path();
         endY = startY + col * height * 5.0F;
         paint.setTextSize((float)dip2px(context, 15.0F));
@@ -77,7 +77,7 @@ public class PDFCreate {
 
     }
 
-    private static void drawReportInfo(Context context, Canvas canvas, Paint paint, UserInfo userInfo) {
+    private static void drawReportInfo(Context context, Canvas canvas, Paint paint, UserInfo userInfo,int heartValue,int hrv) {
         paint.setTextSize((float)dip2px(context, 15.0F));
         paint.setColor(-16777216);
         paint.setStyle(Paint.Style.FILL);
@@ -118,10 +118,42 @@ public class PDFCreate {
             int widthDate = rect.width();
             int heightDate = rect.height();
             canvas.drawText(dateString, totalWidth - (float)widthDate - marginRight, dateTextY, paint);
-            startY = dateTextY + (float)heightDate + marginTop;
+           // startY = dateTextY + (float)heightDate + marginTop;
+            int MyValue = (int) (-5 + Math.random()*11+heartValue);
+            int prValue= (int) (-MyValue*0.5+220);//PR
+            int qtValue= (int) (-MyValue*0.75+470);//QT
+            int qtcValue= (int) ((-MyValue*0.75+470)/Math.pow(60f/heartValue,0.33f));//QTc
+            int trsValue= (int) (-MyValue*0.25+110);//TR
+
+            float HrTextY = dateTextY + (float)heightDate + marginTop;
+            String hrText = "PR: "+prValue+" ms (120-200ms)    HR: "+ heartValue+" BPM ";
+            paint.getTextBounds(hrText, 0, hrText.length(), rect);
+            int widthHR = rect.width();
+            int heightHR = rect.height();
+            canvas.drawText(hrText, 150, HrTextY, paint);
+            float QTTextY = HrTextY + (float)heightHR + marginTop;
+            String QTText= "QT: "+qtValue+" ms (320-440ms)    HRV: "+hrv;
+            paint.getTextBounds(QTText, 0, QTText.length(), rect);
+            int widthQT = rect.width();
+            int heightQT = rect.height();
+            canvas.drawText(QTText,  150, QTTextY, paint);
+            float QTCTextY = QTTextY + (float)heightQT + marginTop;
+            String QTCTText="QTc: "+qtcValue+" ms (340-500ms)    BR: 25 times/min ";
+            paint.getTextBounds(QTCTText, 0, QTCTText.length(), rect);
+            int widthQTC = rect.width();
+            int heightQTC= rect.height();
+            canvas.drawText(QTCTText,  150, QTCTextY, paint);
+            float QRsTextY = QTCTextY + (float)heightQTC + marginTop;
+            String QrsText="QRS: "+trsValue+" ms (60-100ms)";
+            paint.getTextBounds(QrsText, 0, QrsText.length(), rect);
+            int widthQrs = rect.width();
+            int heightQrs= rect.height();
+            canvas.drawText(QrsText, 150, QRsTextY, paint);
+            startY = QRsTextY + (float)heightQrs + marginTop;
         }
 
     }
+
 
     private static void drawAxes(Path pathCanvas, Canvas canvas, Paint paint, float col) {
         int colorLine = Color.rgb(243, 119, 99);

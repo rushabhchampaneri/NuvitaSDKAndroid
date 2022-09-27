@@ -935,8 +935,20 @@ public class MainActivity extends BaseActivity {
     }
 
     private void getEcgData(){
-        sendValue(BleSDK.GetECGwaveform(true,0x00));
+        sendValue(BleSDK.getEcgHistoryData(0,""));
+        //  sendValue(BleSDK.GetECGwaveform(0x00));
+       // sendValue(BleSDK.GetECGwaveform(true,1));
+      //  sendValue(BleSDK.GetECGwaveform(true,0));
     }
+    /*public static byte[] GetECGwaveform(boolean readdata, int num) {
+        read = readdata;
+        byte[] value = new byte[16];
+        value[0] = 113;
+        value[1] = (byte)(readdata ? 0 : -103);
+        value[2] = (byte)num;
+        BleSDK.crcValue(value);
+        return value;
+    }*/
     private void getSleepData(byte mode) {
         sendValue(BleSDK.GetDetailSleepDataWithMode(mode,""));
     }
