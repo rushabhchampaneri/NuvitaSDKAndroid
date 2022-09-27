@@ -35,7 +35,7 @@ public class PDFCreate {
     public PDFCreate() {
     }
 
-    public static void createPdf(String path, Context context, List<Integer> data, UserInfo userInfo,int heartValue,int hrv) {
+    public static void createPdf(String path, Context context, List<Integer> data, UserInfo userInfo,int heartValue,int hrv,int br) {
         int size = data.size();
         float col = size % 5120 == 0 ? (float)(size / 5120) : (float)(size / 5120 + 1);
         length = (float)dip2px(context, 10.0F);
@@ -52,7 +52,7 @@ public class PDFCreate {
         Paint paint = new Paint();
         strokeWidthTime = dip2px(context, 1.5F);
         strokeWidthLine = dip2px(context, 0.5F);
-        drawReportInfo(context, canvas, paint, userInfo,heartValue,hrv);
+        drawReportInfo(context, canvas, paint, userInfo,heartValue,hrv,br);
         Path pathCanvas = new Path();
         endY = startY + col * height * 5.0F;
         paint.setTextSize((float)dip2px(context, 15.0F));
@@ -77,7 +77,7 @@ public class PDFCreate {
 
     }
 
-    private static void drawReportInfo(Context context, Canvas canvas, Paint paint, UserInfo userInfo,int heartValue,int hrv) {
+    private static void drawReportInfo(Context context, Canvas canvas, Paint paint, UserInfo userInfo,int heartValue,int hrv,int br) {
         paint.setTextSize((float)dip2px(context, 15.0F));
         paint.setColor(-16777216);
         paint.setStyle(Paint.Style.FILL);
@@ -138,7 +138,7 @@ public class PDFCreate {
             int heightQT = rect.height();
             canvas.drawText(QTText,  150, QTTextY, paint);
             float QTCTextY = QTTextY + (float)heightQT + marginTop;
-            String QTCTText="QTc: "+qtcValue+" ms (340-500ms)    BR: 25 times/min ";
+            String QTCTText="QTc: "+qtcValue+" ms (340-500ms)    BR: "+br+" times/min ";
             paint.getTextBounds(QTCTText, 0, QTCTText.length(), rect);
             int widthQTC = rect.width();
             int heightQTC= rect.height();
